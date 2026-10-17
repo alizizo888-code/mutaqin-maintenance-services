@@ -46,11 +46,42 @@ try {
   await page.getByRole('heading', { name: 'الإشعارات' }).waitFor({ timeout: 10000 });
   assert.ok(page.url().includes('/notifications'), 'The notifications route should be wired in App.jsx.');
 
-  if (pageErrors.length) {
-    throw new Error('Browser runtime errors:\n' + pageErrors.join('\n'));
+  const routes = [
+    '/', '/services', '/offers', '/store', '/orders', '/account', '/calculator', '/more',
+    '/ai', '/new', '/privacy', '/notifications', '/contact', '/warranty', '/order/__smoke__',
+    '/join-tech', '/staff', '/staff/order/__smoke__', '/staff/operations', '/staff/radar',
+    '/staff/handoff/__smoke__', '/staff/ai-settings', '/staff/pricing', '/staff/ai-command',
+    '/staff/payment-methods', '/staff/ai-owner', '/staff/whatsapp', '/staff/warranties',
+    '/staff/tech-requests', '/staff/notify-settings',
+  ];
+  const routeFailures = [];
+  for (const route of routes) {
+    const before = pageErrors.length;
+    try {
+      await page.goto(`${origin}/#${route}`, { waitUntil: 'domcontentloaded' });
+      await page.waitForFunction(
+        () => (document.querySelector('#root')?.innerText || '').trim().length > 8,
+        null,
+        { timeout: 7000 },
+      );
+      await page.waitForTimeout(80);
+    } catch (error) {
+      routeFailures.push(`${route}: render timeout — ${error.message}`);
+    }
+    if (pageErrors.length > before) {
+      routeFailures.push(`${route}: ${pageErrors.slice(before).join(' | ')}`);
+    }
+  }
+  if (routeFailures.length) {
+    throw new Error('Route smoke tests failed:\\n' + routeFailures.join('\\n'));
   }
 
-  console.log('PASS: production UI mounted without uncaught browser errors.');
+  if (pageErrors.length) {
+    throw new Error('Browser runtime errors:\\n' + pageErrors.join('\\n'));
+  }
+
+  console.log(`PASS: production UI mounted and notifications route works.`);
+  console.log(`PASS: all ${routes.length} customer/staff routes rendered without uncaught browser errors.`);
   console.log('PASS: local-demo safety notice is visible.');
 } finally {
   if (browser) await browser.close();

@@ -27,3 +27,6 @@
 - نجاح مثبت للبناء الإنتاجي: تثبيت الاعتمادات و`npm run build` وإنشاء artifact باسم `mutqan-react-dist`.
 - نسخة المعاينة تستخدم محولًا محليًا في المتصفح، مع شريط ظاهر يوضح أن البيانات لا تصل إلى فريق العمليات.
 - مانع الإطلاق: يلزم Backend موثوق لتخزين البيانات المشتركة وتسجيل الدخول والأدوار والإشعارات والذكاء الاصطناعي والدفع والتخزين. نجاح بناء Vite لا يثبت اكتمال هذه الخدمات.
+
+
+Expanded QA check: the Chromium smoke test now visits all 30 registered customer/staff routes, and validates that the app shell renders without uncaught browser errors. This verifies frontend route mounting only; it does not certify server-backed workflows or production data isolation.

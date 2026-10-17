@@ -24,3 +24,6 @@ The PHP + MySQL application currently lives at the repository root in `index.php
 
 ## Standalone runtime status
 A local demo adapter now lets the client UI mount and persist demo records in browser storage. It is not a replacement for Whacka's hosted runtime: local data does not sync across devices, staff roles are denied by default, and authentication, AI, push notifications, online payments, file uploads, and server triggers are deliberately disabled until their trusted backend integrations are implemented. Do not use this mode for real customer or payment data.
+
+
+Production smoke test now opens the entry UI and visits all 30 registered customer/staff routes in Chromium, checks for page render timeouts and uncaught runtime errors, and confirms the local-demo warning and notifications navigation.
