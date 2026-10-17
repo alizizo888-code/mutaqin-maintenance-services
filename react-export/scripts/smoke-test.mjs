@@ -58,15 +58,15 @@ try {
   for (const route of routes) {
     const before = pageErrors.length;
     try {
-      await page.goto(`${origin}/#${route}`, { waitUntil: 'domcontentloaded' });
-      await page.waitForFunction(
-        () => (document.querySelector('#root')?.innerText || '').trim().length > 8,
-        null,
-        { timeout: 7000 },
-      );
-      await page.waitForTimeout(80);
+      await page.evaluate((path) => { window.location.hash = '#' + path; }, route);
+      await page.waitForTimeout(180);
+      const renderedText = (await page.locator('#root').innerText()).trim();
+      if (renderedText.length <= 8) {
+        routeFailures.push(`${route}: React root is blank after navigation`);
+      }
+      console.log(`Checked route: ${route}`);
     } catch (error) {
-      routeFailures.push(`${route}: render timeout — ${error.message}`);
+      routeFailures.push(`${route}: render check failed — ${error.message}`);
     }
     if (pageErrors.length > before) {
       routeFailures.push(`${route}: ${pageErrors.slice(before).join(' | ')}`);
