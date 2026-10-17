@@ -27,10 +27,10 @@ CREATE TABLE IF NOT EXISTS app_users (
 
 INSERT INTO app_users (username, full_name, password_hash, role, status, must_change_password)
 VALUES
- ('ali', 'حساب العميل التجريبي', '$2y$12$45DHc5Mr0ClP/y2d46hyEe3nVf9JHFjvesxrx3l9Cb3I6yaLRKTji', 'client', 'active', 1),
- ('ali1', 'حساب الفني التجريبي', '$2y$12$0RcIWtkfBHcuH99Ejw1PJe7VGzWar6kWmODwZf6lfDNwFJmkJ5YE.', 'technician', 'active', 1),
- ('ali2', 'حساب مشرف العمليات التجريبي', '$2y$12$3zErHkzfXtjS99xnplZgcecMQOA8ErdBD2rW3rx1ACE20wZ8.W3CW', 'operations', 'active', 1),
- ('ali3', 'حساب المالك التجريبي', '$2y$12$o94AKxP8GYOAIWudwZ6lLOS9xbkfiHSzJJYqbXWfgMySPztWLZ3CK', 'owner', 'active', 1)
+ ('ali', 'حساب العميل التجريبي', '$2y$12$d6vsrkKQTHIqedAzrvl9Fu9lj7cNEnVZ3UKw.4fcOdi9I9vYHUT9S', 'client', 'active', 1),
+ ('ali1', 'حساب الفني التجريبي', '$2y$12$rFOJGXa.zYS8C3wYgzVJO.Oe099FWX9AurwVSTLFTpGsl6xC118Me', 'technician', 'active', 1),
+ ('ali2', 'حساب مشرف العمليات التجريبي', '$2y$12$v.zw.6Qf3OQV0RDY8exwSOjSKmYbZQUtcKI.CvVIbxyWqnPC1WJhy', 'operations', 'active', 1),
+ ('ali3', 'حساب المالك التجريبي', '$2y$12$xywdIQomi9lF9aKcPUQAveXiJbSGWNaM5Zp2uvoIEcnPCPiNDi5V6', 'owner', 'active', 1)
 ON DUPLICATE KEY UPDATE username = VALUES(username);
 
 CREATE TABLE IF NOT EXISTS app_notifications (

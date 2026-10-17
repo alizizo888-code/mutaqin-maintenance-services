@@ -7,11 +7,26 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../helpers/portal.php';
 require_once __DIR__ . '/../config/db.php';
+mutqan_start_session();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') { http_response_code(204); exit; }
+if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
     http_response_code(405);
     echo json_encode(['status' => 'error', 'message' => 'Method Not Allowed'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+try {
+    $pdo = getDatabaseConnection();
+    $currentUser = mutqan_require_user($pdo, ['client','technician','operations','owner']);
+    mutqan_require_csrf();
+} catch (Throwable $e) {
+    error_log('[MUTQAN upload auth] ' . $e->getMessage());
+    http_response_code(503);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['status'=>'error','message'=>'تعذر التحقق من الحساب أو قاعدة البيانات.'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -36,7 +51,7 @@ $allowedOwnerTypes = [
 
 $ownerType  = $_POST['owner_type'] ?? '';
 $ownerId    = isset($_POST['owner_id']) ? (int)$_POST['owner_id'] : 0;
-$uploadedBy = trim($_POST['uploaded_by'] ?? 'system_user');
+$uploadedBy = (string)$currentUser['username'];
 $fieldRole  = $_POST['field_role'] ?? 'default'; // before_img | after_img | avatar | cert | icon | signature
 
 if (!array_key_exists($ownerType, $allowedOwnerTypes) || $ownerId <= 0) {
@@ -48,6 +63,29 @@ if (!array_key_exists($ownerType, $allowedOwnerTypes) || $ownerId <= 0) {
     exit;
 }
 
+// Scope uploads to the authenticated record owner or a manager.
+$fieldRole = (string)$fieldRole;
+if ($ownerType === 'request') {
+    $reqStmt = $pdo->prepare("SELECT id, created_by_user_id, assigned_user_id FROM system_3_requests WHERE id = :id LIMIT 1");
+    $reqStmt->execute([':id' => $ownerId]);
+    $reqRow = $reqStmt->fetch();
+    if (!$reqRow) { http_response_code(404); echo json_encode(['status'=>'error','message'=>'طلب الصيانة غير موجود.'], JSON_UNESCAPED_UNICODE); exit; }
+    $isManager = in_array($currentUser['role'], ['owner','operations'], true);
+    $isAssignedTech = $currentUser['role'] === 'technician' && (int)$reqRow['assigned_user_id'] === (int)$currentUser['id'];
+    $isOwningClient = $currentUser['role'] === 'client' && (int)$reqRow['created_by_user_id'] === (int)$currentUser['id'];
+    if (!$isManager && !$isAssignedTech && !$isOwningClient) { http_response_code(403); echo json_encode(['status'=>'error','message'=>'ليس لديك صلاحية رفع صور لهذا الطلب.'], JSON_UNESCAPED_UNICODE); exit; }
+    if (!in_array($fieldRole, ['before_img','after_img'], true)) { http_response_code(422); echo json_encode(['status'=>'error','message'=>'نوع صورة الطلب غير صالح.'], JSON_UNESCAPED_UNICODE); exit; }
+    if ($currentUser['role'] === 'client' && $fieldRole !== 'before_img') { http_response_code(403); echo json_encode(['status'=>'error','message'=>'يمكن للعميل إرفاق صور قبل الصيانة فقط.'], JSON_UNESCAPED_UNICODE); exit; }
+} elseif ($ownerType === 'technician') {
+    if ($currentUser['role'] === 'technician') {
+        $ownTech = $pdo->prepare("SELECT id FROM system_2_technicians WHERE id=:id AND user_id=:uid LIMIT 1");
+        $ownTech->execute([':id'=>$ownerId, ':uid'=>$currentUser['id']]);
+        if (!$ownTech->fetchColumn() || $fieldRole !== 'cert') { http_response_code(403); echo json_encode(['status'=>'error','message'=>'يمكنك رفع شهادات حسابك فقط.'], JSON_UNESCAPED_UNICODE); exit; }
+    } elseif (!in_array($currentUser['role'], ['owner','operations'], true)) { http_response_code(403); echo json_encode(['status'=>'error','message'=>'ليس لديك صلاحية رفع هذه الصورة.'], JSON_UNESCAPED_UNICODE); exit; }
+} elseif (!in_array($currentUser['role'], ['owner','operations'], true)) {
+    http_response_code(403); echo json_encode(['status'=>'error','message'=>'رفع هذا النوع من الملفات متاح للإدارة فقط.'], JSON_UNESCAPED_UNICODE); exit;
+}
+
 if (!isset($_FILES['image_file']) || $_FILES['image_file']['error'] !== UPLOAD_ERR_OK) {
     http_response_code(400);
     echo json_encode([
@@ -56,6 +94,7 @@ if (!isset($_FILES['image_file']) || $_FILES['image_file']['error'] !== UPLOAD_E
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
+if ((int)($_FILES['image_file']['size'] ?? 0) > 5 * 1024 * 1024) { http_response_code(413); echo json_encode(['status'=>'error','message'=>'أقصى حجم للصورة 5 ميجابايت.'], JSON_UNESCAPED_UNICODE); exit; }
 
 $fileTmpPath  = $_FILES['image_file']['tmp_name'];
 $originalName = basename($_FILES['image_file']['name']);
@@ -106,8 +145,6 @@ if (!move_uploaded_file($fileTmpPath, $destinationPath)) {
 
 $imageId    = 'IMG_' . strtoupper(substr($hashSha256, 0, 12));
 $uploadedAt = date('Y-m-d H:i:s');
-
-$pdo = getDatabaseConnection();
 
 try {
     $pdo->beginTransaction();
@@ -184,6 +221,6 @@ try {
     http_response_code(500);
     echo json_encode([
         'status'  => 'error',
-        'message' => 'خطأ أثناء ربط الصورة بقاعدة البيانات: ' . $e->getMessage()
+        'message' => 'تعذر ربط الصورة بقاعدة البيانات. راجع سجل الخادم.'
     ], JSON_UNESCAPED_UNICODE);
 }

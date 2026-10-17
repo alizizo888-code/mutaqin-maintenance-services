@@ -106,7 +106,9 @@ try {
     }
 
     if ($action === 'change_password') {
-        $user = mutqan_require_user($pdo = getDatabaseConnection());
+        $pdo = getDatabaseConnection();
+        $user = mutqan_current_user($pdo);
+        if (!$user) mutqan_json(401, ['status' => 'error', 'message' => 'سجّل الدخول أولاً لتغيير كلمة المرور.']);
         $current = (string)($input['current_password'] ?? '');
         $password = (string)($input['new_password'] ?? '');
         $confirm = (string)($input['confirm_password'] ?? '');
