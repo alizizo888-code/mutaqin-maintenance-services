@@ -42,6 +42,10 @@ try {
   assert.match(text, /وضع معاينة محلي/, 'The explicit local-demo safety notice should be visible.');
   assert.match(text, /OXYGEN|مُتقن/, 'The main customer UI did not render its expected brand.');
 
+  await page.getByRole('button', { name: 'الإشعارات' }).click();
+  await page.getByRole('heading', { name: 'الإشعارات' }).waitFor({ timeout: 10000 });
+  assert.ok(page.url().includes('/notifications'), 'The notifications route should be wired in App.jsx.');
+
   if (pageErrors.length) {
     throw new Error('Browser runtime errors:\n' + pageErrors.join('\n'));
   }

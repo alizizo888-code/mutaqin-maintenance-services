@@ -9,6 +9,8 @@ import Account from './pages/client/Account'
 import Calculator from './pages/client/Calculator'
 import More from './pages/client/More'
 import AiChat from './pages/client/AiChat'
+import Notifications from './pages/Notifications'
+import NotifySettings from './pages/NotifySettings'
 import NewOrder from './pages/NewOrder'
 import ClientOrderDetail from './pages/ClientOrderDetail'
 import StaffGate from './pages/StaffGate'
@@ -49,6 +51,8 @@ export default function App() {
         <Route path="/ai" element={<AiChat />} />
         <Route path="/new" element={<NewOrder />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/staff/notify-settings" element={<NotifySettings />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/warranty" element={<MyWarranties />} />
         <Route path="/order/:id" element={<ClientOrderDetail />} />

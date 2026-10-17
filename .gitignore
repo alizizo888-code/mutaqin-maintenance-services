@@ -1,4 +1,12 @@
 /backend/config/config.local.php
 /.env
-/error_log
 *.log
+/react-export/node_modules/
+/react-export/dist/
+/react-export/.vite/
+**/node_modules/
+**/dist/
+**/.vite/
+.env
+.env.*
+!.env.example
