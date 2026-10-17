@@ -10,7 +10,7 @@
 ## Still missing
 The following directories are still incomplete or pending:
 - `src/components/` — not yet uploaded
-- `src/hooks/` — not yet uploaded
+- `src/hooks/` — 11 uploaded: `useAiSettings.js`, `useAssignment.js`, `useLocator.js`, `useNotifySettings.js`, `usePaymentMethods.js`, `usePricing.js`, `useSession.js`, `useTeamRole.js`, `useTechProfiles.js`, `useWaNumbers.js`, `useWarranty.js`
 
 The 11 uploaded client pages live in `src/pages/client/`. All 49 supplied `lib/` files are now uploaded. Important: the supplied files explicitly describe themselves as Whacka platform stubs; they document API names but deliberately throw when called. Replace or implement these platform services before independent runtime use.
 
