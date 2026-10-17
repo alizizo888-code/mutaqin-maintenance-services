@@ -11,7 +11,7 @@ try {
     $pdo = getDatabaseConnection();
     if ($method === 'GET' && $action === 'dashboard') {
         $user = mutqan_require_user($pdo, ['owner','operations']);
-        $techs = $pdo->query("SELECT t.id AS technician_id,t.user_id,t.name,t.specialty,t.rating,t.status,t.latitude,t.longitude,u.full_name,u.phone FROM system_2_technicians t JOIN app_users u ON u.id=t.user_id WHERE u.role='technician' AND u.status='active' AND t.status='available' ORDER BY t.name")->fetchAll();
+        $techs = $pdo->query("SELECT t.id AS technician_id,t.user_id,t.name,t.specialty,t.rating,t.status,t.latitude,t.longitude,u.full_name,u.phone FROM system_2_technicians t JOIN app_users u ON u.id=t.user_id WHERE u.role='technician' AND u.status='active' AND t.status IN ('available','busy') ORDER BY t.status,t.name")->fetchAll();
         $requests = $pdo->query("SELECT r.*,COALESCE(r.requester_name,c.name) AS customer_name,COALESCE(r.requester_phone,c.phone) AS customer_phone,COALESCE(r.service_address,c.address) AS customer_address,au.full_name AS assigned_technician_name FROM system_3_requests r LEFT JOIN system_1_clients c ON c.id=r.client_id LEFT JOIN app_users au ON au.id=r.assigned_user_id ORDER BY r.id DESC LIMIT 200")->fetchAll();
         mutqan_json(200,['status'=>'success','version'=>'v4.0','system_2_technicians'=>$techs,'system_3_requests'=>$requests]);
     }
