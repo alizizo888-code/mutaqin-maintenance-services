@@ -132,7 +132,7 @@ try {
         if ($lat !== null && ($lat < -90 || $lat > 90)) $lat = null;
         if ($lng !== null && ($lng < -180 || $lng > 180)) $lng = null;
         if (($lat === null) !== ($lng === null)) { $lat = null; $lng = null; }
-        $mapsUrl = $lat !== null ? 'https://www.google.com/maps?q=' . rawurlencode((string)$lat . ',' . (string)$lng) : null;
+        $mapsUrl = $lat !== null ? 'https://www.google.com/maps?q=' . rawurlencode((string)$lat . ',' . (string)$lng) : 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($address);
         $priority = (string)($input['priority'] ?? 'normal');
         if (!in_array($priority, ['low','normal','high','urgent'], true)) $priority = 'normal';
         $guestToken = $user ? null : bin2hex(random_bytes(32));
