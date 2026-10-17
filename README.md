@@ -1,27 +1,26 @@
-# مُتقن MUTQAN — منصة الصيانة (PHP + MySQL)
+# مُتقن MUTQAN — منصة الصيانة
 
-المستودع يحتوي على مصدر PHP قابل للتثبيت، وواجهات API، ومخطط قاعدة البيانات، وواجهات HTML التجريبية، والتوثيق، والملفات المصدرية المقروءة التي رُفعت للمراجعة.
+المستودع يضم أساس PHP + MySQL، وواجهات HTML التجريبية، ونسخة جزئية من تصدير React/Vite.
 
-## تنزيل حزمة ZIP
-ملف ثنائي باسم `mutqan-php-clean-package.zip` موجود في جذر المستودع، ويتم بناؤه والتحقق من سلامته تلقائيًا عبر GitHub Actions من الملفات المتتبعة في الفرع `main`.
+## آخر تحديث لمصدر React
+تم رفع 16 ملفًا من المستوى الرئيسي إلى `react-export/src/`، بما فيها `App.jsx`, `main.jsx`, `index.css` ومحركات التسجيل والخدمات والضمان والتسعير والإشعارات والذكاء الاصطناعي والمدفوعات.
 
-- [تنزيل حزمة ZIP الثنائية من GitHub](https://github.com/alizizo888-code/mutaqin-maintenance-services/raw/refs/heads/main/mutqan-php-clean-package.zip)
+**تصدير React غير مكتمل بعد:** ننتظر المجلدات التي تستوردها الملفات، وهي:
+- `react-export/src/components/`
+- `react-export/src/hooks/`
+- `react-export/src/lib/`
+- `react-export/src/pages/`
+
+بعض ملفات الإعدادات و`src` تعتمد على SDK خاص بمنصة Whacka، وتصدير README الأصلي يوضح أن خدمات المصادقة والبيانات والتخزين والذكاء الاصطناعي ليست ضمن التصدير وحده؛ لذلك لا يعتبر مجلد React الحالي بناءً مستقلًا قابلًا للتشغيل حتى اكتمال هذه التبعيات وتكييفها.
+
+## تنزيل الحزمة الثنائية
+- [تنزيل mutqan-php-clean-package.zip](https://github.com/alizizo888-code/mutaqin-maintenance-services/raw/refs/heads/main/mutqan-php-clean-package.zip)
 - [سجل بناء الحزمة](https://github.com/alizizo888-code/mutaqin-maintenance-services/actions/workflows/build-package.yml)
 
-**ملاحظة مهمة عن التطابق:** الحزمة الثنائية الموجودة في المستودع يُعاد بناؤها داخل GitHub من شجرة المصدر الحالية؛ لذلك ليست نسخة بايت-ببايت من ملف ZIP المحلي المرفق بالمحادثة. الأرشيف المحلي الأصلي يحتوي أيضًا على أرشيف React داخلي لم يُسجل حتى الآن كملف منفصل داخل المستودع.
+ZIP الحالي يُبنى تلقائيًا من شجرة المستودع؛ بعد كل رفع إلى `main` يعاد بناؤه والتحقق منه.
 
-## بدء التشغيل
-1. ارفع الملفات إلى استضافة PHP مثل Hostinger.
-2. أنشئ قاعدة MySQL ثم استورد `database/schema.sql` من phpMyAdmin.
-3. انسخ `backend/config/config.local.php.example` إلى `backend/config/config.local.php` وضع بيانات قاعدة البيانات الحقيقية.
-4. افتح النطاق. لا ترفع كلمات المرور أو الأسرار إلى GitHub.
-
-## المكونات
-- `index.php`: واجهة طلب الصيانة.
-- `backend/api/api.php`: واجهة API الأساسية للأنظمة.
-- `backend/api/operations.php`: واجهة غرفة العمليات والإسناد.
-- `backend/api/invoices.php`: عمليات الفواتير.
-- `backend/upload/image-handler.php`: رفع الصور المحلية والتحقق من بصمة SHA-256.
-- `frontend/prototypes/`: معاينات واجهات العميل وغرفة العمليات والفواتير.
-- `docs/`: تقارير ومخططات المشروع.
-- `reference/original-uploads/`: الملفات النصية الأصلية التي رُفعت للمراجعة.
+## تشغيل نسخة PHP
+1. استورد `database/schema.sql` في قاعدة MySQL جديدة.
+2. انسخ `backend/config/config.local.php.example` إلى `backend/config/config.local.php`.
+3. أدخل بيانات MySQL من Hostinger محليًا، ولا ترفع الأسرار إلى GitHub.
+4. اختبر الموقع بعد إعداد الاتصال.

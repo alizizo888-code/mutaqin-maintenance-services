@@ -1,14 +1,21 @@
 # حالة الحزمة الثنائية — مُتقِن
 
-## الحالة المؤكدة
-- الملف الثنائي `mutqan-php-clean-package.zip` موجود في جذر المستودع.
-- أُعيد بناؤه عبر GitHub Actions من الملفات المتتبعة في الفرع `main`.
-- اجتاز فحص سلامة ZIP `unzip -t`، وآخر عملية بناء موثقة نجحت.
+## الحزمة الثنائية
+- `mutqan-php-clean-package.zip` موجود في جذر المستودع ويتم بناؤه تلقائيًا عبر GitHub Actions.
+- البناء يشغّل `git archive` ويتحقق من سلامة ZIP عبر `unzip -t`.
 - [تنزيل ZIP](https://github.com/alizizo888-code/mutaqin-maintenance-services/raw/refs/heads/main/mutqan-php-clean-package.zip)
-- [سجل بناء الحزمة](https://github.com/alizizo888-code/mutaqin-maintenance-services/actions/workflows/build-package.yml)
+- [سجل البناء](https://github.com/alizizo888-code/mutaqin-maintenance-services/actions/workflows/build-package.yml)
 
-## الملفات الجديدة
-تم رفع ملفات إعدادات React/Vite الستة التي أُرسلت بشكل منفصل إلى `react-export/`.
+## مصدر React/Vite
+تم رفع الإعدادات وستة عشر ملفًا من المستوى الرئيسي لمجلد `src/` إلى `react-export/src/`.
 
-## القيد المتبقي
-الحزمة الموجودة على GitHub هي نسخة مولدة من شجرة المصدر الحالية، وليست نسخة مطابقة بايتًا ببايت لملف ZIP المحلي المرفق بالمحادثة. أرشيف المصدر `mutaqin (2).zip` يحتوي على تطبيق React ومجلد `src/`، لكن هذا الأرشيف الثنائي نفسه ومحتويات مجلد `src/` لم تُنقل كاملة إلى GitHub حتى الآن. لذلك مجلد `react-export/` الحالي لا يُبنى منفردًا بعد.
+المجلدات الناقصة التي ما زلنا ننتظرها:
+- `react-export/src/components/`
+- `react-export/src/hooks/`
+- `react-export/src/lib/`
+- `react-export/src/pages/`
+
+ملفات App.jsx وملفات الخدمة تستورد وحدات من هذه المسارات؛ لذلك React export غير مكتمل ولا ينبغي اعتبار نجاح ZIP على أنه نجاح بناء React.
+
+## قيود المصدر الأصلي
+الملف الثنائي ZIP الموجود في المستودع يعاد بناؤه من ملفات المستودع وليس مطابقًا بايتًا ببايت للأرشيف المحلي. README الأصلي من Whacka محفوظ منفصلًا ويذكر أن خدمات المصادقة والبيانات والتخزين والذكاء الاصطناعي والمدفوعات والإشعارات تعتمد على المنصة وليست ضمن التصدير.
