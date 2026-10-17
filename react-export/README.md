@@ -1,28 +1,16 @@
-# Metqan
+# React/Vite export — partial files imported
 
-Exported from Whacka — this is **your app's code**: the components, pages and hooks
-you built, exactly as they run on Whacka. It's yours to keep.
+This directory currently contains the six separately uploaded export/configuration files:
 
-## What's in here
+- `index.html`
+- `package.json`
+- `postcss.config.js`
+- `README.md`
+- `tailwind.config.js`
+- `vite.config.js`
 
-- `src/App.jsx`, `src/components/*`, `src/pages/*`, `src/hooks/*` — **your code**.
-  This is the real export, untouched.
-- `src/lib/*` — **stubs** for the Whacka client SDK (data, auth, storage, push,
-  social, …). The real implementation runs on the Whacka platform and is provided to
-  your app at runtime, so it isn't included here. The stubs keep your imports
-  resolving and show which Whacka APIs your code uses.
-- `src/main.jsx` — a stubbed entry point. The platform bootstrap (session, auth,
-  realtime, install, theming) runs on Whacka and is omitted.
-- `index.html`, `vite.config.js`, `package.json`, Tailwind/PostCSS config — the build setup.
+**Important:** the `src/` application tree referenced by the original export README has not been checked into this directory. Therefore this directory is not a standalone React build yet. The original user-provided source archive `mutaqin (2).zip` includes the app sources, but that archive has not been uploaded as a binary file into this GitHub repository or unpacked here.
 
-## Does this run on its own?
+The original README supplied with the export is preserved at `reference/original-uploads/react-export-README-original.md`.
 
-**No — and it isn't meant to.** Your app's data, auth, storage, AI, payments and push
-features are powered by Whacka's hosted backend, and the client SDK that talks to it is
-not part of this export. What you have here is a faithful, readable copy of the code you
-authored — for your records, for review, or to hand to a developer.
-
-## Ownership
-
-Your application code is yours. The Whacka platform SDK and backend that make it run are
-Whacka's, and are not included in this export.
+For the current PHP + MySQL implementation, use the repository root entrypoint `index.php` and the setup instructions in the root `README.md`.
