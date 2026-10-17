@@ -1,24 +1,47 @@
-/**
- * Whacka client SDK — _branding (stub)
- *
- * The implementation runs on the Whacka platform and is provided to your app at
- * runtime; it is intentionally NOT part of this export. This stub only keeps
- * your imports resolving and documents which Whacka APIs your code uses. Your
- * own code (components, pages, hooks) is the real, complete export. See README.
- */
+// Standalone white-label branding defaults replacing Whacka's branding service.
+const STORAGE_KEY = 'mutqan:demo-branding-hidden';
+const EVENT = 'mutqan:branding-changed';
 
-const __wk = (path) =>
-  new Proxy(function () {}, {
-    get: (_t, prop) =>
-      typeof prop === 'symbol' || prop === 'then' ? undefined : __wk(path + '.' + prop),
-    apply: () => {
-      throw new Error(
-        '`' + path + '` runs on the Whacka platform and is not available in exported code.'
-      );
-    },
-  });
+function readHidden() {
+  try {
+    const value = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+    return value === 'true';
+  } catch { return false; }
+}
 
-export const brandingHidden = __wk('brandingHidden');
-export const brandingKnown = __wk('brandingKnown');
-export const onBrandingChange = __wk('onBrandingChange');
-export const refreshBranding = __wk('refreshBranding');
+export let brandingHidden = readHidden();
+// In standalone demo mode the default is known and visible (no forced Whacka badge state).
+export let brandingKnown = true;
+const listeners = new Set();
+
+function emit() {
+  for (const callback of [...listeners]) {
+    try { callback(brandingHidden); } catch {}
+  }
+  if (typeof window !== 'undefined') {
+    try { window.dispatchEvent(new CustomEvent(EVENT, { detail: { brandingHidden, brandingKnown } })); } catch {}
+  }
+}
+
+export function onBrandingChange(callback) {
+  if (typeof callback !== 'function') return () => {};
+  listeners.add(callback);
+  try { callback(brandingHidden); } catch {}
+  return () => listeners.delete(callback);
+}
+
+export function refreshBranding() {
+  brandingHidden = readHidden();
+  brandingKnown = true;
+  emit();
+  return brandingHidden;
+}
+
+// Local demo preference only; it does not change a hosted Whacka project.
+export function setBrandingHidden(value) {
+  brandingHidden = value === true;
+  brandingKnown = true;
+  try { localStorage.setItem(STORAGE_KEY, String(brandingHidden)); } catch {}
+  emit();
+  return brandingHidden;
+}
