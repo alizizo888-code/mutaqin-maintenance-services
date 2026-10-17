@@ -1,0 +1,43 @@
+name: Build React export
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "react-export/**"
+      - ".github/workflows/build-react-export.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Install dependencies and build React/Vite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: react-export
+        run: npm install --no-audit --no-fund
+
+      - name: Build production bundle
+        working-directory: react-export
+        run: npm run build
+
+      - name: Upload production bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutqan-react-dist
+          path: react-export/dist/
+          if-no-files-found: error
+          retention-days: 14
