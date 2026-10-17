@@ -1,0 +1,44 @@
+name: Build binary PHP package
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "mutqan-php-clean-package.zip"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build and validate ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          git archive --format=zip --prefix=mutqan-php/ HEAD -o mutqan-php-clean-package.zip
+          unzip -t mutqan-php-clean-package.zip
+          sha256sum mutqan-php-clean-package.zip
+          ls -lh mutqan-php-clean-package.zip
+
+      - name: Commit binary package
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mutqan-php-clean-package.zip
+          if git diff --cached --quiet; then
+            echo "Binary package is already up to date."
+            exit 0
+          fi
+          git commit -m "chore(package): update binary bundle [skip ci]"
+          git push origin HEAD:main
