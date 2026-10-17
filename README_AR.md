@@ -34,10 +34,10 @@
 - الإسناد اليدوي: `POST /backend/api/portal.php?action=assign_request` مع `request_id` و`technician_user_id`، وصلاحية مشرف العمليات/المالك وCSRF. لا يوجد اختيار فني تلقائي.
 - لوحة عمليات بديلة: `GET /backend/api/operations.php?action=dashboard`، وتتطلب جلسة مشرف عمليات أو مالك.
 - الفواتير: `GET/POST /backend/api/invoices.php` (إنشاء مسودة عبر `action=create`، ثم إصدارها عبر `action=issue` بعد حفظ التوقيع وملف PDF).
-- رفع PDF لفاتورة موجودة: `POST /backend/upload/invoice-pdf-handler.php` بصيغة `multipart/form-data`: `invoice_id`, `pdf_file`، مع ترويسة `X-Admin-Token`. هذا المعالج يرفع PDF؛ ولا يقوم بإنشاء فاتورة PDF من الصفر.
-- رفع صورة محلية: `POST /backend/upload/image-handler.php` بصيغة `multipart/form-data`: `image_file`, `owner_type`, `owner_id`, `field_role`، مع ترويسة `X-Admin-Token`.
+- رفع PDF للفواتير غير متاح حالياً؛ لا يوجد ملف `backend/upload/invoice-pdf-handler.php` في الحزمة النشطة.
+- رفع صورة محلية: `POST /backend/upload/image-handler.php` بصيغة `multipart/form-data`: `image_file`, `owner_type`, `owner_id`, `field_role`، مع جلسة خادمية وترويسة `X-CSRF-Token` وصلاحية للسجل المعني.
 
-تدفق الفاتورة الحالي: أنشئ مسودة فاتورة، ثم ارفع صورة التوقيع عبر `image-handler.php` باستخدام `owner_type=invoice`, `owner_id=رقم_الفاتورة`, `field_role=signature`، وارفع ملف PDF المُجهز مسبقاً عبر معالج PDF، وبعد ذلك أرسل `{ "action": "issue", "invoice_id": رقم_الفاتورة }` إلى `invoices.php`.
+الفواتير ليست ضمن رحلة الطلب الجديدة المكتملة بعد: واجهة قراءة/حفظ محدودة موجودة، لكن رفع PDF وإصدار الفاتورة من النهاية إلى النهاية يحتاجان استكمالاً منفصلاً قبل الاستخدام التجاري.
 
 التعديلات الإدارية في واجهات البوابة الجديدة تتطلب جلسة خادمية وصلاحية مناسبة ورمز CSRF. لا تضع كلمات المرور أو ملفات الإعداد المحلية في HTML أو JavaScript أو GitHub.
 
