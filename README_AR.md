@@ -4,13 +4,14 @@
 
 هذه النسخة تنظّم الملفات التي تم رفعها وتوفر أساساً يعمل على استضافة PHP + MySQL مثل Hostinger، بدون Node.js أو VPS.
 
-- `index.php`: صفحة عربية متجاوبة، بها نموذج طلب صيانة حقيقي يرسل البيانات إلى PHP API، وقائمة خدمات تُحمّل من قاعدة البيانات عند الاتصال.
+- `index.php`: مدخل الدومين الرئيسي وواجهة العميل/الزائر بالعربية RTL، مع دليل الخدمات والتخصصات والتسجيل وطلب الخدمة.
 - `backend/config/db.php`: اتصال PDO موحد بقاعدة MySQL، دون كتابة بيانات الاتصال مباشرة في ملفات API.
-- `backend/api/api.php`: قراءة قائمة الخدمات وتسجيل طلب جديد، مع حماية قراءة البيانات الداخلية وإنشاء السجلات الإدارية برمز إدارة.
-- `backend/api/operations.php`: بيانات غرفة العمليات، إسناد الطلبات، وربط صور الطلب بعد التحقق من وجود الملفات وبصمة SHA-256.
-- `backend/api/invoices.php`: قراءة الفواتير وإنشاء مسودة وإصدارها بعد التأكد من وجود ملف PDF وتوقيع محليين صالحين.
-- `backend/upload/image-handler.php`: رفع صور محلية JPG/PNG/WEBP بحجم أقصى 5MB، وإنشاء بصمة SHA-256 وربطها بالسجل المعني.
-- `backend/upload/invoice-pdf-handler.php`: رفع ملف PDF لفاتورة موجودة (10MB كحد أقصى) وتسجيل بصمته.
+- `backend/api/api.php`: مسار توافق قديم محدود؛ قراءة بيانات العملاء والطلبات والفواتير تتطلب جلسة وصلاحيات مالك/عمليات، والتعديلات عبر واجهات النظام المحمية.
+- `backend/api/portal.php`: تسجيل الدخول عبر `auth.php`، إنشاء طلبات الزائر والعميل، المحادثات، لوحة كل دور، اعتماد مزودي الخدمة، وتحديث حالة المهام.
+- `backend/api/operations.php`: لوحة العمليات وإسناد يدوي للفني المتاح فقط؛ لا يوجد إسناد تلقائي.
+- `backend/api/invoices.php`: واجهة فواتير محمية بجلسة وصلاحيات المالك/العمليات. توليد الفواتير أو رفع PDF آلياً ليس مكتملاً من واجهة العميل الحالية.
+- `backend/upload/image-handler.php`: رفع صور محلية JPG/PNG/WEBP بحجم أقصى 5MB، مع جلسة وصلاحية وCSRF وتقييد بحسب الطلب المرتبط.
+- لا يوجد حالياً مسار نشط لرفع PDF الفواتير؛ لا تعتمد على معاينة الفواتير القديمة حتى استكمال هذه الوظيفة.
 - `database/schema.sql`: مخطط قاعدة بيانات مُنظم يتضمن الأنظمة الخمسة، وفئات الخدمات، وحقول حالة الطلب وموقعه والتواريخ.
 - `database/schema-original.sql`: نسخة من ملف SQL الأصلي الذي رفعته، بدون تعديل.
 - `frontend/prototypes/`: الواجهات HTML الأصلية بعد تسميتها بأسماء واضحة، وتظهر عليها علامة «معاينة تجريبية».
@@ -21,23 +22,24 @@
 1. أنشئ **قاعدة بيانات MySQL جديدة وفارغة** من لوحة Hostinger. لا تستورد `database/schema.sql` فوق قاعدة تشغيل تحتوي بيانات مهمة.
 2. افتح phpMyAdmin واختر قاعدة البيانات الجديدة، ثم استورد `database/schema.sql`.
 3. انسخ محتويات مجلد المشروع إلى `public_html` للدومين أو المجلد المستهدف، لا ترفع مجلد `mutqan-php` كطبقة إضافية إن كنت تريد الصفحة على الدومين مباشرة.
-4. انسخ `backend/config/config.local.php.example` إلى `backend/config/config.local.php`، ثم أدخل بيانات قاعدة البيانات من Hostinger. أنشئ قيمة طويلة وعشوائية لـ `admin_api_token` ولا تستخدم النص التجريبي الموجود في المثال.
+4. انسخ `backend/config/config.local.php.example` إلى `backend/config/config.local.php`، ثم أدخل `DB_HOST` و`DB_NAME` و`DB_USER` و`DB_PASS` من Hostinger. لتوجيه واتساب مباشرة إلى الشركة، ضع رقم WhatsApp Business الدولي في `WHATSAPP_BUSINESS_NUMBER`. لا ترفع `config.local.php` إلى GitHub.
 5. تأكد من استخدام PHP 8.1 أو أحدث وتوفر PDO MySQL وFileinfo. يحتاج مجلد `uploads/` إلى صلاحية كتابة من PHP؛ ابدأ بصلاحيات المجلد الافتراضية المناسبة للاستضافة ولا تمنحه صلاحية 777.
 6. افتح الدومين. إذا لم تضبط قاعدة البيانات بعد، فستبقى الواجهة ظاهرة مع حالة «بانتظار إعداد قاعدة البيانات»، ولن يتم تسجيل الطلبات حتى ينجح الاتصال.
 
 ## 3. اختبار API
 
-- قائمة الخدمات العامة: `GET /backend/api/api.php?system=system_4_services`
-- تسجيل طلب عميل: `POST /backend/api/api.php?system=system_3_requests` مع JSON يحتوي `client_name`, `phone`, `address`, `issue`، ويمكن إرسال `priority`, `location_label`, `latitude`, `longitude`, `service_id`.
-- لوحة العمليات: `GET /backend/api/operations.php?action=dashboard`
-- الإسناد: `POST /backend/api/operations.php?action=assign` مع `request_id` و`tech_id` (أو `tech_id: 0` لاختيار فني متاح صاحب تقييم أعلى).
+- كتالوج الواجهة العامة: `GET /backend/api/portal.php?action=services`.
+- تسجيل طلب زائر/عميل: `POST /backend/api/portal.php?action=create_request` مع `service_category`, `service_name`, `full_name`, `phone`, `address`, `issue`، ويمكن إضافة `latitude`, `longitude`, `priority`؛ الطلبات المعدّلة تتطلب CSRF/session.
+- لوحة الدور الحالي: `GET /backend/api/portal.php?action=dashboard`، وتتطلب جلسة نشطة.
+- الإسناد اليدوي: `POST /backend/api/portal.php?action=assign_request` مع `request_id` و`technician_user_id`، وصلاحية مشرف العمليات/المالك وCSRF. لا يوجد اختيار فني تلقائي.
+- لوحة عمليات بديلة: `GET /backend/api/operations.php?action=dashboard`، وتتطلب جلسة مشرف عمليات أو مالك.
 - الفواتير: `GET/POST /backend/api/invoices.php` (إنشاء مسودة عبر `action=create`، ثم إصدارها عبر `action=issue` بعد حفظ التوقيع وملف PDF).
 - رفع PDF لفاتورة موجودة: `POST /backend/upload/invoice-pdf-handler.php` بصيغة `multipart/form-data`: `invoice_id`, `pdf_file`، مع ترويسة `X-Admin-Token`. هذا المعالج يرفع PDF؛ ولا يقوم بإنشاء فاتورة PDF من الصفر.
 - رفع صورة محلية: `POST /backend/upload/image-handler.php` بصيغة `multipart/form-data`: `image_file`, `owner_type`, `owner_id`, `field_role`، مع ترويسة `X-Admin-Token`.
 
 تدفق الفاتورة الحالي: أنشئ مسودة فاتورة، ثم ارفع صورة التوقيع عبر `image-handler.php` باستخدام `owner_type=invoice`, `owner_id=رقم_الفاتورة`, `field_role=signature`، وارفع ملف PDF المُجهز مسبقاً عبر معالج PDF، وبعد ذلك أرسل `{ "action": "issue", "invoice_id": رقم_الفاتورة }` إلى `invoices.php`.
 
-كل العمليات الإدارية تتطلب الترويسة `X-Admin-Token` بقيمة `admin_api_token` التي ضبطتها في الخادم. **لا تضع رمز الإدارة في HTML أو JavaScript أو عنوان URL، ولا ترسله للعميل أو الزائر.**
+التعديلات الإدارية في واجهات البوابة الجديدة تتطلب جلسة خادمية وصلاحية مناسبة ورمز CSRF. لا تضع كلمات المرور أو ملفات الإعداد المحلية في HTML أو JavaScript أو GitHub.
 
 ## 4. أسماء الأنظمة المعتمدة
 
