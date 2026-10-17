@@ -1,0 +1,97 @@
+name: Portal integration tests
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "index.php"
+      - "assets/**"
+      - "backend/**"
+      - "database/**"
+      - "tests/portal-integration.sh"
+      - ".github/workflows/php-portal-integration.yml"
+  pull_request:
+    paths:
+      - "index.php"
+      - "assets/**"
+      - "backend/**"
+      - "database/**"
+      - "tests/portal-integration.sh"
+      - ".github/workflows/php-portal-integration.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: mutqan_ci
+          MYSQL_USER: mutqan_ci
+          MYSQL_PASSWORD: mutqan_ci_pw_2026
+          MYSQL_ROOT_PASSWORD: root-test-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot-test-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP with MySQL support
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: pdo_mysql, fileinfo
+
+      - name: Check PHP and JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l index.php
+          find backend -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+          node --check assets/mutqan.js
+
+      - name: Initialize fresh database and apply role migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          mysql --protocol=tcp -h 127.0.0.1 -u mutqan_ci -pmutqan_ci_pw_2026 mutqan_ci < database/schema.sql
+          mysql --protocol=tcp -h 127.0.0.1 -u mutqan_ci -pmutqan_ci_pw_2026 mutqan_ci < database/migrations/20261017_role_based_portals.sql
+
+      - name: Configure temporary test database connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp backend/config/config.local.php.example backend/config/config.local.php
+          sed -i \
+            -e "s/DB_HOST', 'localhost'/DB_HOST', '127.0.0.1'/" \
+            -e "s/DB_NAME', 'CHANGE_ME'/DB_NAME', 'mutqan_ci'/" \
+            -e "s/DB_USER', 'CHANGE_ME'/DB_USER', 'mutqan_ci'/" \
+            -e "s/DB_PASS', 'CHANGE_ME'/DB_PASS', 'mutqan_ci_pw_2026'/" \
+            backend/config/config.local.php
+          php -r "require 'backend/config/config.local.php'; if (DB_HOST !== '127.0.0.1' || DB_NAME !== 'mutqan_ci') exit(1);"
+
+      - name: Start PHP web server
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -S 127.0.0.1:8080 -t . > /tmp/mutqan-php.log 2>&1 &
+          echo $! > /tmp/mutqan-php.pid
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/mutqan-php.log
+          exit 1
+
+      - name: Exercise guest, owner, provider, technician and task workflow
+        shell: bash
+        run: bash tests/portal-integration.sh
