@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800;900&family=Tajawal:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: 238 244 251;
+  --color-primary: 30 144 255;
+  --color-secondary: 2 132 199;
+}
+
+* {
+  font-family: 'Tajawal', sans-serif;
+}
+
+.font-display {
+  font-family: 'Cairo', sans-serif;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+.leaflet-container {
+  background: #e8f1fb !important;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fadeUp 0.45s ease both;
+}
+
+@keyframes snowFall {
+  0% { transform: translateY(-8px) rotate(0deg); opacity: 0; }
+  15% { opacity: 0.7; }
+  100% { transform: translateY(46px) rotate(160deg); opacity: 0; }
+}
+
+.snowflake {
+  animation: snowFall 5s linear infinite;
+}
+
+@keyframes floatSoft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+.float-soft {
+  animation: floatSoft 3.4s ease-in-out infinite;
+}
+
+@keyframes bannerIn {
+  from { opacity: 0; transform: scale(1.06); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.banner-in {
+  animation: bannerIn 0.9s ease both;
+}
+
+@keyframes lineIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.line-in {
+  animation: lineIn 0.5s ease both;
+}
