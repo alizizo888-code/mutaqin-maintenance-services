@@ -7,12 +7,15 @@
 - 11 customer-facing pages under `src/pages/client/`: `Home.jsx`, `More.jsx`, `MyOrders.jsx`, `MyWarranties.jsx`, `Offers.jsx`, `Services.jsx`, `Store.jsx`, `Account.jsx`, `AiChat.jsx`, `Calculator.jsx`, `Contact.jsx`.
 - `lib/` complete: 49 of 49 uploaded files stored under `src/lib/` in three batches (20 + 20 + 9). The duplicate-upload suffix `(1)` was removed from filenames such as `useLive(1).js` to preserve expected import names.
 
-## Still missing
-The following directories are still incomplete or pending:
-- `src/components/` — 21 files copied from the manually uploaded root `components/` directory into the correct React source path. Original root-level files preserved.
-- `src/hooks/` — 11 uploaded: `useAiSettings.js`, `useAssignment.js`, `useLocator.js`, `useNotifySettings.js`, `usePaymentMethods.js`, `usePricing.js`, `useSession.js`, `useTeamRole.js`, `useTechProfiles.js`, `useWaNumbers.js`, `useWarranty.js`
+## Source directories verified
+- `src/components/` — 21 files in place; the manually uploaded originals in the repository-root `components/` directory were preserved.
+- `src/hooks/` — 11 files in place.
+- `src/lib/` — 49 files in place.
+- `src/pages/` — 20 operational pages and 11 client-facing pages.
 
-The 11 uploaded client pages live in `src/pages/client/`. All 49 supplied `lib/` files are now uploaded. Important: the supplied files explicitly describe themselves as Whacka platform stubs; they document API names but deliberately throw when called. Replace or implement these platform services before independent runtime use.
+Routes `/notifications` and `/staff/notify-settings` are now wired in `App.jsx`.
+
+The 11 client pages and all 49 `lib/` files are in place. Several original `lib/` files whose names begin with an underscore remain internal Whacka stubs. Core client-facing modules now use explicitly local-demo adapters, while remote authentication, team permissions, real-time cross-device data, AI, push notifications, online payments, file uploads, and server triggers remain unavailable.
 
 This export is incomplete until those folders and their dependencies are uploaded. The original Whacka README is preserved at `reference/original-uploads/react-export-README-original.md`. It states that authentication, database, storage, AI, payments, push and platform bootstrap rely on Whacka services not included in the export; those integrations will need replacement or configuration for independent hosting.
 
