@@ -1,0 +1,41 @@
+name: PHP portal checks
+
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "index.php"
+      - "assets/**"
+      - "backend/**"
+      - "database/**"
+      - ".github/workflows/php-portal-check.yml"
+  pull_request:
+    paths:
+      - "index.php"
+      - "assets/**"
+      - "backend/**"
+      - "database/**"
+      - ".github/workflows/php-portal-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer
+      - name: Check PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -path './react-export' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+      - name: Check browser JavaScript syntax
+        run: node --check assets/mutqan.js
