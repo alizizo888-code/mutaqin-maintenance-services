@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<!-- Version: v3.0 - Mutqan Operations Room, TechRadar & Auto-Assignment (system_2 & system_3) -->
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مُتقن - OXYGEN | غرفة العمليات ورادار الفنيين v3.0</title>
+  <style>
+    :root {
+      --color-bg: #eef4fb;
+      --color-primary: #0284c7;
+      --color-secondary: #0369a1;
+      --color-dark: #0f172a;
+      --color-slate: #475569;
+      --color-light-border: #d8e6f6;
+      --color-card: #ffffff;
+      --color-emerald: #10b981;
+      --color-amber: #f59e0b;
+      --color-danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-dark);
+      padding: 16px;
+      line-height: 1.6;
+    }
+
+    .app-grid {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    @media (min-width: 920px) {
+      .app-grid {
+        grid-template-columns: 1.35fr 1fr;
+      }
+      .full-span {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .top-banner {
+      background: linear-gradient(135deg, var(--color-dark), var(--color-secondary));
+      color: #fff;
+      padding: 18px 22px;
+      border-radius: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+    }
+
+    .top-banner h1 {
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .top-banner p {
+      font-size: 12.5px;
+      opacity: 0.9;
+    }
+
+    .version-pill {
+      background: var(--color-emerald);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .card {
+      background: var(--color-card);
+      border: 1px solid var(--color-light-border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--color-light-border);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 16.5px;
+      font-weight: 800;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--color-slate);
+    }
+
+    /* Interactive Canvas Container with Overlay Controls */
+    .canvas-stage {
+      position: relative;
+      background: #091326;
+      border-radius: 16px;
+      border: 2px solid var(--color-primary);
+      overflow: hidden;
+      height: 390px;
+    }
+
+    #radarCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+
+    #radarCanvas:active {
+      cursor: grabbing;
+    }
+
+    .canvas-overlay-toolbar {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      left: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .canvas-btn {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.85);
+      color: #fff;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      padding: 6px 11px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .canvas-btn:hover {
+      background: var(--color-primary);
+      border-color: #fff;
+    }
+
+    .canvas-status-bar {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      left: 10px;
+      background: rgba(15, 23, 42, 0.88);
+      color: #38bdf8;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    /* Lists & Forms */
+    .item-box {
+      border: 1px solid var(--color-light-border);
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .badge-ready { background: #d1fae5; color: #065f46; }
+    .badge-busy { background: #fef3c7; color: #92400e; }
+    .badge-urgent { background: #fee2e2; color: #991b1b; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .input-ctrl {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--color-light-border);
+      font-size: 13.5px;
+      background: #fff;
+    }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary { background: var(--color-primary); color: #fff; }
+    .btn-emerald { background: var(--color-emerald); color: #fff; }
+    .btn-amber { background: var(--color-amber); color: #fff; }
+
+    /* Before / After Image Canvas Inspector */
+    .ba-canvas-wrap {
+      position: relative;
+      background: #0f172a;
+      border: 2px dashed var(--color-primary);
+      border-radius: 14px;
+      height: 220px;
+      overflow: hidden;
+    }
+
+    #baCompareCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .code-output {
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 12px;
+      border-radius: 12px;
+      font-family: monospace;
+      font-size: 12px;
+      direction: ltr;
+      text-align: left;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      max-height: 250px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-grid">
+  <!-- Header -->
+  <header class="top-banner full-span">
+    <div>
+      <h1>🛰️ غرفة العمليات المركزية ورادار الفنيين — تطبيق مُتقن (مؤسسة أكسجين)</h1>
+      <p>إدارة الفنيين (`system_2_technicians`) + توزيع الطلبات الآلي (`src/assignment.js`) + توثيق الصور المحلي (`system_3_requests`)</p>
+    </div>
+    <span class="version-pill">الإصدار v3.0 | TechRadar & OperationsRoom</span>
+  </header>
+
+  <!-- Right Column: Interactive Radar Canvas -->
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">🗺️ رادار الفنيين التفاعلي (TechRadar Canvas)</div>
+        <div class="card-sub">نطاق مكة المكرمة (العزيزية) وجدة — تحكم كامل بالخلفية والصور عبر أزرار الـ Canvas</div>
+      </div>
+    </div>
+
+    <div class="canvas-stage">
+      <!-- أزرار التحكم المدمجة فوق الـ Canvas لتعديل وتحميل الصور والخلفيات -->
+      <div class="canvas-overlay-toolbar">
+        <label class="canvas-btn">
+          🖼️ تحميل خلفية خريطة/صورة خارجية للـ Canvas
+          <input type="file" id="bgMapInput" accept="image/*" style="display:none" onchange="loadCustomRadarBg(event)">
+        </label>
+        <button class="canvas-btn" onclick="adjustRadarZoom(0.15)">➕ تكبير</button>
+        <button class="canvas-btn" onclick="adjustRadarZoom(-0.15)">➖ تصغير</button>
+        <button class="canvas-btn" onclick="toggleRadarDarkOverlay()">🌗 تباين الخلفية</button>
+        <button class="canvas-btn" onclick="resetRadarView()">🔄 إعادة ضبط</button>
+      </div>
+
+      <canvas id="radarCanvas" width="700" height="390"></canvas>
+
+      <div class="canvas-status-bar">
+        <span id="radarStatusText">🟢 الرادار نشط: اضغط على أي فني أو طلب على الخريطة لمعاينة المسار</span>
+        <span id="radarBgHashText">المصدر: Canvas محلي (بدون روابط خارجية)</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <button class="btn btn-primary" onclick="runAutoAssignment()">⚡ تشغيل الإسناد الآلي (`src/assignment.js`)</button>
+      <button class="btn btn-emerald" onclick="notifyAssignedTechWhatsApp()">📲 إرسال أمر التحرك للفني عبر واتساب</button>
+    </div>
+  </section>
+
+  <!-- Left Column: Technicians (system_2) & Active Requests (system_3) -->
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">👨‍🔧 سجل الفنيين والطلبات (`system_2` & `system_3`)</div>
+        <div class="card-sub">مطابقة 1:1 مع البيانات المرفوعة في الأرشيف</div>
+      </div>
+    </div>
+
+    <!-- Technicians List -->
+    <div id="techListContainer"></div>
+
+    <!-- Add / Update Technician Certificate Local Binding -->
+    <div style="border-top:1px solid var(--color-light-border);padding-top:10px;">
+      <div class="card-sub" style="margin-bottom:6px;font-weight:700;">📄 ربط شهادة الفني المحلية (`cert_image_path` + `SHA-256`):</div>
+      <div class="form-row">
+        <label class="btn btn-amber" style="cursor:pointer;">
+          📎 ارفع صورة شهادة الفني (`201_cert.jpg`)
+          <input type="file" accept="image/*" style="display:none" onchange="bindTechCertImage(event, 201)">
+        </label>
+      </div>
+    </div>
+
+    <!-- Active Requests List -->
+    <div style="border-top:1px solid var(--color-light-border);padding-top:10px;">
+      <div class="card-title" style="font-size:15px;margin-bottom:8px;">📋 طلبات الصيانة الجارية (`system_3_requests`)</div>
+      <div id="requestListContainer"></div>
+    </div>
+  </section>
+
+  <!-- Bottom Full Span: Workflow & Before/After Canvas Image Inspector -->
+  <section class="card full-span">
+    <div class="card-header">
+      <div>
+        <div class="card-title">📸 مختبر توثيق صور قبل وبعد الصيانة (`before_img` & `after_img` Canvas)</div>
+        <div class="card-sub">رفع ومعاينة صور العطل قبل الإصلاح وبعده مع أزرار تعديل على الـ Canvas وتوليد بصمة `SHA-256` إلزامية</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <label class="btn btn-primary">
+          📥 رفع صورة قبل الصيانة (`before_img`)
+          <input type="file" accept="image/*" style="display:none" onchange="loadRequestImage(event, 'before')">
+        </label>
+        <label class="btn btn-emerald">
+          📥 رفع صورة بعد الصيانة (`after_img`)
+          <input type="file" accept="image/*" style="display:none" onchange="loadRequestImage(event, 'after')">
+        </label>
+        <button class="btn btn-amber" onclick="exportOperationsBindingJson()">⬇️ تحميل سجل المطابقة والربط (JSON)</button>
+      </div>
+    </div>
+
+    <div class="ba-canvas-wrap">
+      <div class="canvas-overlay-toolbar">
+        <button class="canvas-btn" onclick="adjustBaBrightness(15)">☀️ تفتيح الصورة</button>
+        <button class="canvas-btn" onclick="adjustBaBrightness(-15)">🌑 تعتيم الصورة</button>
+        <button class="canvas-btn" onclick="clearBaImages()">🗑️ مسح المعاينة</button>
+      </div>
+      <canvas id="baCompareCanvas" width="1050" height="220"></canvas>
+    </div>
+
+    <div>
+      <div class="card-sub" style="margin-bottom:6px;">سجل ربط الصور والبيانات الحي (`IMAGE ↔ DATA BINDING` — `system_2_technicians` & `system_3_requests`):</div>
+      <div class="code-output" id="operationsBindingOutput"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+  // ============================================================================
+  // 1. البيانات المعتمدة 1:1 من ملفات الأرشيف المرفوعة (بدون أي تأليف خارجي)
+  // ============================================================================
+  const SYSTEM_2_TECHNICIANS = [
+    {
+      id: 201,
+      name: "وليد أحمد محمد محمد",
+      specialty: "فني تبريد وتكييف (سبليت، باكج، كونسيلد، غرف تبريد STC-8080H)",
+      rating: 4.9,
+      cert_image_path: "/uploads/technicians/201_cert.jpg",
+      x: 240,
+      y: 150,
+      status: "available"
+    }
+  ];
+
+  const SYSTEM_3_REQUESTS = [
+    {
+      id: 301,
+      client_id: 101,
+      tech_id: null,
+      issue: "صيانة غرفة تبريد وتجميد + معايرة ثرموستات STC-8080H وفحص كباس SRD600AC01",
+      location_label: "مكة المكرمة - العزيزية",
+      before_img: "/uploads/requests/301_before.jpg",
+      after_img: "/uploads/requests/301_after.jpg",
+      x: 470,
+      y: 250,
+      status: "pending"
+    }
+  ];
+
+  const IMAGE_DATA_BINDINGS = {
+    tech_201_cert: {
+      image_id: "IMG_TECH_201",
+      owner_type: "technician",
+      owner_id: 201,
+      local_path: "/uploads/technicians/201_cert.jpg",
+      hash_sha256: "AWAITING_LOCAL_FILE_UPLOAD",
+      uploaded_at: new Date().toISOString(),
+      uploaded_by: "admin_oxygen",
+      no_external_source: true,
+      source_file: "src/registration.js"
+    },
+    req_301_before: {
+      image_id: "IMG_REQ_301_BEFORE",
+      owner_type: "request",
+      owner_id: 301,
+      local_path: "/uploads/requests/301_before.jpg",
+      hash_sha256: "AWAITING_LOCAL_FILE_UPLOAD",
+      uploaded_at: new Date().toISOString(),
+      uploaded_by: "tech_201",
+      no_external_source: true,
+      source_file: "src/workflow.js"
+    },
+    req_301_after: {
+      image_id: "IMG_REQ_301_AFTER",
+      owner_type: "request",
+      owner_id: 301,
+      local_path: "/uploads/requests/301_after.jpg",
+      hash_sha256: "AWAITING_LOCAL_FILE_UPLOAD",
+      uploaded_at: new Date().toISOString(),
+      uploaded_by: "tech_201",
+      no_external_source: true,
+      source_file: "src/workflow.js"
+    }
+  };
+
+  // ============================================================================
+  // 2. دالة حساب البصمة الأمنية SHA-256 لأي ملف صورة محلي
+  // ============================================================================
+  async function computeFileSha256(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ============================================================================
+  // 3. رادار العمليات التفاعلي (TechRadar Canvas) مع أزرار تعديل الخلفية
+  // ============================================================================
+  const radarCanvas = document.getElementById('radarCanvas');
+  const rCtx = radarCanvas.getContext('2d');
+  let radarZoom = 1.0;
+  let radarDarkOverlay = 0.45;
+  let customBgImage = null;
+  let radarSweepAngle = 0;
+
+  async function loadCustomRadarBg(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const hash = await computeFileSha256(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        customBgImage = img;
+        document.getElementById('radarBgHashText').innerText = `خلفية محلية: ${file.name} | SHA-256: ${hash.substring(0, 12)}...`;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function adjustRadarZoom(delta) {
+    radarZoom = Math.min(1.8, Math.max(0.7, radarZoom + delta));
+  }
+
+  function toggleRadarDarkOverlay() {
+    radarDarkOverlay = radarDarkOverlay > 0.6 ? 0.2 : radarDarkOverlay + 0.25;
+  }
+
+  function resetRadarView() {
+    radarZoom = 1.0;
+    radarDarkOverlay = 0.45;
+    customBgImage = null;
+    document.getElementById('radarBgHashText').innerText = 'المصدر: Canvas محلي (بدون روابط خارجية)';
+  }
+
+  function drawRadarFrame() {
+    const w = radarCanvas.width;
+    const h = radarCanvas.height;
+    rCtx.clearRect(0, 0, w, h);
+
+    rCtx.save();
+    rCtx.translate(w / 2, h / 2);
+    rCtx.scale(radarZoom, radarZoom);
+    rCtx.translate(-w / 2, -h / 2);
+
+    // رسم الخلفية المرفوعة إن وجدت
+    if (customBgImage) {
+      rCtx.drawImage(customBgImage, 0, 0, w, h);
+    }
+
+    // طبقة التعتيم لزيادة تباين الأيقونات
+    rCtx.fillStyle = `rgba(9, 19, 38, ${customBgImage ? radarDarkOverlay : 0.95})`;
+    rCtx.fillRect(0, 0, w, h);
+
+    // شبكة الإحداثيات الهندسية
+    rCtx.strokeStyle = 'rgba(56, 189, 248, 0.14)';
+    rCtx.lineWidth = 1;
+    for (let x = 0; x < w; x += 50) {
+      rCtx.beginPath(); rCtx.moveTo(x, 0); rCtx.lineTo(x, h); rCtx.stroke();
+    }
+    for (let y = 0; y < h; y += 50) {
+      rCtx.beginPath(); rCtx.moveTo(0, y); rCtx.lineTo(w, y); rCtx.stroke();
+    }
+
+    // دوائر الرادار المركزية
+    const cx = w / 2;
+    const cy = h / 2;
+    [65, 130, 190].forEach(radius => {
+      rCtx.beginPath();
+      rCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+      rCtx.strokeStyle = 'rgba(16, 185, 129, 0.28)';
+      rCtx.stroke();
+    });
+
+    // شعاع مسح الرادار المتحرك
+    radarSweepAngle = (radarSweepAngle + 0.025) % (Math.PI * 2);
+    rCtx.beginPath();
+    rCtx.moveTo(cx, cy);
+    rCtx.arc(cx, cy, 190, radarSweepAngle, radarSweepAngle + 0.35);
+    rCtx.closePath();
+    rCtx.fillStyle = 'rgba(16, 185, 129, 0.16)';
+    rCtx.fill();
+
+    // رسم خط الربط إذا تم إسناد الطلب للفني
+    const req = SYSTEM_3_REQUESTS[0];
+    const tech = SYSTEM_2_TECHNICIANS[0];
+    if (req.tech_id === tech.id) {
+      rCtx.beginPath();
+      rCtx.setLineDash([8, 6]);
+      rCtx.moveTo(tech.x, tech.y);
+      rCtx.lineTo(req.x, req.y);
+      rCtx.strokeStyle = '#38bdf8';
+      rCtx.lineWidth = 2.5;
+      rCtx.stroke();
+      rCtx.setLineDash([]);
+    }
+
+    // رسم موقع الفني (#201)
+    rCtx.beginPath();
+    rCtx.arc(tech.x, tech.y, 12, 0, Math.PI * 2);
+    rCtx.fillStyle = '#10b981';
+    rCtx.fill();
+    rCtx.lineWidth = 3;
+    rCtx.strokeStyle = '#ffffff';
+    rCtx.stroke();
+
+    rCtx.fillStyle = '#ffffff';
+    rCtx.font = 'bold 13px Tahoma';
+    rCtx.fillText(`🚐 فني #${tech.id}: ${tech.name} (${tech.rating}⭐)`, tech.x - 70, tech.y - 18);
+
+    // رسم موقع الطلب (#301)
+    rCtx.beginPath();
+    rCtx.arc(req.x, req.y, 12, 0, Math.PI * 2);
+    rCtx.fillStyle = req.tech_id ? '#f59e0b' : '#ef4444';
+    rCtx.fill();
+    rCtx.strokeStyle = '#ffffff';
+    rCtx.stroke();
+
+    rCtx.fillStyle = '#fde047';
+    rCtx.fillText(`❄️ طلب #${req.id}: ${req.location_label}`, req.x - 65, req.y + 28);
+
+    rCtx.restore();
+    requestAnimationFrame(drawRadarFrame);
+  }
+
+  // ============================================================================
+  // 4. خوارزمية الإسناد الآلي (src/assignment.js) وعرض القوائم
+  // ============================================================================
+  function renderOperationsLists() {
+    const techContainer = document.getElementById('techListContainer');
+    techContainer.innerHTML = SYSTEM_2_TECHNICIANS.map(t => `
+      <div class="item-box">
+        <div>
+          <div style="font-weight:800;font-size:14.5px;">👨‍🔧 ${t.name} <span style="color:var(--color-primary)">(#${t.id})</span></div>
+          <div class="card-sub">${t.specialty}</div>
+          <div class="card-sub">المسار المحلي للشهادة: <code>${t.cert_image_path}</code></div>
+        </div>
+        <span class="badge ${t.status === 'available' ? 'badge-ready' : 'badge-busy'}">
+          ${t.status === 'available' ? '🟢 متاح للإسناد (' + t.rating + '⭐)' : '🟠 في مهمة ميدانية'}
+        </span>
+      </div>
+    `).join('');
+
+    const reqContainer = document.getElementById('requestListContainer');
+    reqContainer.innerHTML = SYSTEM_3_REQUESTS.map(r => `
+      <div class="item-box">
+        <div>
+          <div style="font-weight:800;font-size:14px;">📌 طلب صيانة #${r.id} — ${r.location_label}</div>
+          <div class="card-sub">${r.issue}</div>
+          <div class="card-sub">الفني المُسند: <strong>${r.tech_id ? 'وليد أحمد محمد محمد (#' + r.tech_id + ')' : 'لم يُسند بعد'}</strong></div>
+        </div>
+        <span class="badge ${r.tech_id ? 'badge-ready' : 'badge-urgent'}">
+          ${r.tech_id ? '✅ تم الإسناد الآلي' : '🚨 بانتظار التوجيه'}
+        </span>
+      </div>
+    `).join('');
+
+    updateBindingJsonOutput();
+  }
+
+  function runAutoAssignment() {
+    const req = SYSTEM_3_REQUESTS[0];
+    const bestTech = SYSTEM_2_TECHNICIANS[0];
+    req.tech_id = bestTech.id;
+    req.status = 'assigned';
+    bestTech.status = 'assigned';
+
+    document.getElementById('radarStatusText').innerText =
+      `✅ تم إسناد الطلب #${req.id} آلياً إلى الفني (${bestTech.name}) بنجاح!`;
+    renderOperationsLists();
+  }
+
+  function notifyAssignedTechWhatsApp() {
+    const req = SYSTEM_3_REQUESTS[0];
+    const tech = SYSTEM_2_TECHNICIANS[0];
+    const text = encodeURIComponent(
+      `🛰️ *غرفة عمليات مُتقن - مؤسسة أكسجين للصيانة*\n` +
+      `أمر عمل فوري للفني: *${tech.name}* (#${tech.id})\n` +
+      `📋 رقم الطلب: #${req.id}\n` +
+      `📍 الموقع: ${req.location_label}\n` +
+      `🔧 الوصف الفني: ${req.issue}\n` +
+      `📸 يرجى رفع صور (قبل وبعد الصيانة) لتوليد بصمة SHA-256 وإصدار الضمان.\n` +
+      `📞 خط العمليات: 0549423050 / 0536554731`
+    );
+    window.open(`https://wa.me/966549423050?text=${text}`, '_blank');
+  }
+
+  async function bindTechCertImage(event, techId) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const sha256 = await computeFileSha256(file);
+    IMAGE_DATA_BINDINGS.tech_201_cert.hash_sha256 = sha256;
+    IMAGE_DATA_BINDINGS.tech_201_cert.uploaded_at = new Date().toISOString();
+    updateBindingJsonOutput();
+  }
+
+  // ============================================================================
+  // 5. مختبر Canvas لصور قبل وبعد الصيانة (before_img & after_img)
+  // ============================================================================
+  const baCanvas = document.getElementById('baCompareCanvas');
+  const baCtx = baCanvas.getContext('2d');
+  let beforeImgObj = null;
+  let afterImgObj = null;
+  let baBrightness = 0;
+
+  async function loadRequestImage(event, type) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const sha256 = await computeFileSha256(file);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        if (type === 'before') {
+          beforeImgObj = img;
+          IMAGE_DATA_BINDINGS.req_301_before.hash_sha256 = sha256;
+          IMAGE_DATA_BINDINGS.req_301_before.uploaded_at = new Date().toISOString();
+        } else {
+          afterImgObj = img;
+          IMAGE_DATA_BINDINGS.req_301_after.hash_sha256 = sha256;
+          IMAGE_DATA_BINDINGS.req_301_after.uploaded_at = new Date().toISOString();
+        }
+        renderBeforeAfterCanvas();
+        updateBindingJsonOutput();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function adjustBaBrightness(val) {
+    baBrightness = Math.max(-80, Math.min(80, baBrightness + val));
+    renderBeforeAfterCanvas();
+  }
+
+  function clearBaImages() {
+    beforeImgObj = null;
+    afterImgObj = null;
+    baBrightness = 0;
+    renderBeforeAfterCanvas();
+  }
+
+  function renderBeforeAfterCanvas() {
+    const w = baCanvas.width;
+    const h = baCanvas.height;
+    baCtx.clearRect(0, 0, w, h);
+
+    // الخلفية الأساسية للمقارنة
+    baCtx.fillStyle = '#0f172a';
+    baCtx.fillRect(0, 0, w, h);
+
+    const halfW = w / 2;
+
+    // النصف الأيمن: قبل الصيانة (before_img)
+    if (beforeImgObj) {
+      baCtx.drawImage(beforeImgObj, halfW + 10, 10, halfW - 20, h - 20);
+    } else {
+      baCtx.strokeStyle = '#475569';
+      baCtx.strokeRect(halfW + 15, 15, halfW - 30, h - 30);
+      baCtx.fillStyle = '#94a3b8';
+      baCtx.font = 'bold 14px Tahoma';
+      baCtx.fillText('📸 منطقة صورة قبل الصيانة (before_img) - ارفع من جهازك', halfW + 70, h / 2);
+    }
+
+    // النصف الأيسر: بعد الصيانة (after_img)
+    if (afterImgObj) {
+      baCtx.drawImage(afterImgObj, 10, 10, halfW - 20, h - 20);
+    } else {
+      baCtx.strokeStyle = '#475569';
+      baCtx.strokeRect(15, 15, halfW - 30, h - 30);
+      baCtx.fillStyle = '#94a3b8';
+      baCtx.font = 'bold 14px Tahoma';
+      baCtx.fillText('✨ منطقة صورة بعد الصيانة (after_img) - ارفع من جهازك', 70, h / 2);
+    }
+
+    // تطبيق تعديل الإضاءة/التباين من أزرار الـ Canvas
+    if (baBrightness !== 0) {
+      baCtx.fillStyle = baBrightness > 0
+        ? `rgba(255, 255, 255, ${baBrightness / 200})`
+        : `rgba(0, 0, 0, ${Math.abs(baBrightness) / 200})`;
+      baCtx.fillRect(0, 0, w, h);
+    }
+
+    // خط الفصل الوسطي
+    baCtx.beginPath();
+    baCtx.moveTo(halfW, 0);
+    baCtx.lineTo(halfW, h);
+    baCtx.strokeStyle = '#0284c7';
+    baCtx.lineWidth = 3;
+    baCtx.stroke();
+  }
+
+  function updateBindingJsonOutput() {
+    const payload = {
+      version: "v3.0",
+      system_2_technicians: SYSTEM_2_TECHNICIANS,
+      system_3_requests: SYSTEM_3_REQUESTS,
+      image_data_bindings: IMAGE_DATA_BINDINGS
+    };
+    document.getElementById('operationsBindingOutput').innerText = JSON.stringify(payload, null, 2);
+  }
+
+  function exportOperationsBindingJson() {
+    const dataStr = document.getElementById('operationsBindingOutput').innerText;
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mutqan_operations_v3_bindings.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    renderOperationsLists();
+    renderBeforeAfterCanvas();
+    drawRadarFrame();
+  });
+</script>
+</body>
+</html>

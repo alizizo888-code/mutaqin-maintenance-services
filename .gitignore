@@ -1,0 +1,4 @@
+/backend/config/config.local.php
+/.env
+/error_log
+*.log

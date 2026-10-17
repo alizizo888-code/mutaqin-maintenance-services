@@ -1,0 +1,9 @@
+<?php
+declare(strict_types=1);
+
+// Copy this file to config.local.php and replace every CHANGE_ME value.
+// Do not commit config.local.php or share database passwords.
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'CHANGE_ME');
+define('DB_USER', 'CHANGE_ME');
+define('DB_PASS', 'CHANGE_ME');
