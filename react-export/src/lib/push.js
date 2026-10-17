@@ -1,21 +1,21 @@
-/**
- * Whacka client SDK — push (stub)
- *
- * The implementation runs on the Whacka platform and is provided to your app at
- * runtime; it is intentionally NOT part of this export. This stub only keeps
- * your imports resolving and documents which Whacka APIs your code uses. Your
- * own code (components, pages, hooks) is the real, complete export. See README.
- */
-
-const __wk = (path) =>
-  new Proxy(function () {}, {
-    get: (_t, prop) =>
-      typeof prop === 'symbol' || prop === 'then' ? undefined : __wk(path + '.' + prop),
-    apply: () => {
-      throw new Error(
-        '`' + path + '` runs on the Whacka platform and is not available in exported code.'
-      );
-    },
-  });
-
-export const push = __wk('push');
+// Push delivery requires the missing hosted service worker/backend. This fallback never claims delivery.
+const unavailable = async () => ({ ok: false, available: false, mode: 'local-demo' });
+const known = {
+  status: async () => ({ available: false, configured: false }),
+  requestPermission: async () => {
+    if (typeof Notification === 'undefined') return 'unsupported';
+    try { return await Notification.requestPermission(); } catch { return 'denied'; }
+  },
+  sendToRole: unavailable,
+  sendToAdmins: unavailable,
+  send: unavailable,
+  subscribe: unavailable,
+  unsubscribe: unavailable,
+};
+export const push = new Proxy(known, {
+  get(target, key) {
+    if (key in target) return target[key];
+    if (key === 'then') return undefined;
+    return unavailable;
+  },
+});

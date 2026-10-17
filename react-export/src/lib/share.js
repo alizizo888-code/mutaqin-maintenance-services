@@ -1,22 +1,41 @@
-/**
- * Whacka client SDK — share (stub)
- *
- * The implementation runs on the Whacka platform and is provided to your app at
- * runtime; it is intentionally NOT part of this export. This stub only keeps
- * your imports resolving and documents which Whacka APIs your code uses. Your
- * own code (components, pages, hooks) is the real, complete export. See README.
- */
+import { db } from './db';
 
-const __wk = (path) =>
-  new Proxy(function () {}, {
-    get: (_t, prop) =>
-      typeof prop === 'symbol' || prop === 'then' ? undefined : __wk(path + '.' + prop),
-    apply: () => {
-      throw new Error(
-        '`' + path + '` runs on the Whacka platform and is not available in exported code.'
-      );
-    },
-  });
+function openWhatsApp(phone, text = '') {
+  if (typeof window === 'undefined') return null;
+  const digits = String(phone || '').replace(/\D/g, '');
+  const base = digits ? 'https://wa.me/' + digits : 'https://wa.me/';
+  const url = base + (text ? '?text=' + encodeURIComponent(text) : '');
+  return window.open(url, '_blank', 'noopener,noreferrer');
+}
 
-export const isInAppBrowser = __wk('isInAppBrowser');
-export const share = __wk('share');
+async function copy(text) {
+  const value = String(text ?? '');
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return true;
+  }
+  if (typeof document === 'undefined') throw new Error('النسخ غير مدعوم في هذا المتصفح.');
+  const area = document.createElement('textarea');
+  area.value = value;
+  area.setAttribute('readonly', '');
+  area.style.position = 'fixed';
+  area.style.opacity = '0';
+  document.body.appendChild(area);
+  area.select();
+  const ok = document.execCommand('copy');
+  area.remove();
+  if (!ok) throw new Error('تعذر نسخ النص.');
+  return true;
+}
+
+async function whatsappOrder({ phone, text = '', collection, groupId, record } = {}) {
+  // Open from the click handler before the async local write, to reduce popup blocking.
+  openWhatsApp(phone, text);
+  if (collection && record) {
+    try { await db.insertShared(collection, { ...record, groupId: groupId || record.groupId }); } catch {}
+  }
+  return { opened: true, savedLocally: !!(collection && record) };
+}
+
+export const isInAppBrowser = () => typeof navigator !== 'undefined' && /FBAN|FBAV|Instagram|Line\//i.test(navigator.userAgent || '');
+export const share = { copy, whatsapp: openWhatsApp, whatsappOrder, isInAppBrowser };

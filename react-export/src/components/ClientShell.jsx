@@ -60,6 +60,9 @@ export default function ClientShell() {
       </aside>
 
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <div role="status" className="shrink-0 px-3 py-2 bg-amber-50 border-b border-amber-200 text-amber-900 text-center text-[11px] font-bold" dir="rtl">
+          وضع معاينة محلي: البيانات تُحفظ على هذا الجهاز فقط، ولا تُرسل الطلبات إلى فريق العمليات. تسجيل الدخول والدفع والإشعارات السحابية غير مفعّلة.
+        </div>
         <main className="flex-1 min-h-0 overflow-hidden">
           <Outlet />
         </main>

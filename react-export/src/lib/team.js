@@ -1,21 +1,13 @@
-/**
- * Whacka client SDK — team (stub)
- *
- * The implementation runs on the Whacka platform and is provided to your app at
- * runtime; it is intentionally NOT part of this export. This stub only keeps
- * your imports resolving and documents which Whacka APIs your code uses. Your
- * own code (components, pages, hooks) is the real, complete export. See README.
- */
-
-const __wk = (path) =>
-  new Proxy(function () {}, {
-    get: (_t, prop) =>
-      typeof prop === 'symbol' || prop === 'then' ? undefined : __wk(path + '.' + prop),
-    apply: () => {
-      throw new Error(
-        '`' + path + '` runs on the Whacka platform and is not available in exported code.'
-      );
-    },
-  });
-
-export const team = __wk('team');
+// No trusted team service is present in the Whacka export.
+const LOCAL_GROUP_ID = 'local-demo';
+const known = {
+  groupId: async () => LOCAL_GROUP_ID,
+  currentMember: async () => null,
+};
+export const team = new Proxy(known, {
+  get(target, key) {
+    if (key in target) return target[key];
+    if (key === 'then') return undefined;
+    return async () => null;
+  },
+});

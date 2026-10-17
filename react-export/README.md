@@ -17,3 +17,7 @@ The 11 uploaded client pages live in `src/pages/client/`. All 49 supplied `lib/`
 This export is incomplete until those folders and their dependencies are uploaded. The original Whacka README is preserved at `reference/original-uploads/react-export-README-original.md`. It states that authentication, database, storage, AI, payments, push and platform bootstrap rely on Whacka services not included in the export; those integrations will need replacement or configuration for independent hosting.
 
 The PHP + MySQL application currently lives at the repository root in `index.php` and `backend/`.
+
+
+## Standalone runtime status
+A local demo adapter now lets the client UI mount and persist demo records in browser storage. It is not a replacement for Whacka's hosted runtime: local data does not sync across devices, staff roles are denied by default, and authentication, AI, push notifications, online payments, file uploads, and server triggers are deliberately disabled until their trusted backend integrations are implemented. Do not use this mode for real customer or payment data.

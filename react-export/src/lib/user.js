@@ -1,22 +1,16 @@
-/**
- * Whacka client SDK — user (stub)
- *
- * The implementation runs on the Whacka platform and is provided to your app at
- * runtime; it is intentionally NOT part of this export. This stub only keeps
- * your imports resolving and documents which Whacka APIs your code uses. Your
- * own code (components, pages, hooks) is the real, complete export. See README.
- */
-
-const __wk = (path) =>
-  new Proxy(function () {}, {
-    get: (_t, prop) =>
-      typeof prop === 'symbol' || prop === 'then' ? undefined : __wk(path + '.' + prop),
-    apply: () => {
-      throw new Error(
-        '`' + path + '` runs on the Whacka platform and is not available in exported code.'
-      );
-    },
-  });
-
-export const getAppUserId = __wk('getAppUserId');
-export const getAnonymousId = __wk('getAnonymousId');
+import { auth } from './auth';
+const ANON_KEY = 'mutqan:demo-anonymous-id';
+function randomId() {
+  try { if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID(); } catch {}
+  return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+}
+export function getAppUserId() {
+  return auth.getCurrentUser()?.id || getAnonymousId();
+}
+export function getAnonymousId() {
+  try {
+    let id = localStorage.getItem(ANON_KEY);
+    if (!id) { id = 'anon-' + randomId(); localStorage.setItem(ANON_KEY, id); }
+    return id;
+  } catch { return 'anon-session'; }
+}
