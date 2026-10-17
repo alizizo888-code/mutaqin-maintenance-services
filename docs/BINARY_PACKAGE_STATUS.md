@@ -7,14 +7,13 @@
 - [سجل البناء](https://github.com/alizizo888-code/mutaqin-maintenance-services/actions/workflows/build-package.yml)
 
 ## مصدر React/Vite
-تم رفع الإعدادات و16 ملفًا من المستوى الرئيسي لـ `src/`، و20 صفحة تشغيلية داخل `react-export/src/pages/`، و11 صفحة عميل داخل `react-export/src/pages/client/`.
+تم رفع الإعدادات و16 ملفًا من المستوى الرئيسي لـ `src/`، و20 صفحة تشغيلية داخل `react-export/src/pages/`، و11 صفحة عميل داخل `react-export/src/pages/client/`، و49 ملفًا من أصل 49 داخل `react-export/src/lib/`.
 
-المجلدات/الدفعات المتبقية:
+المجلدات المتبقية:
 - `react-export/src/components/` — لم تُرفع بعد
 - `react-export/src/hooks/` — لم تُرفع بعد
-- `react-export/src/lib/` — تم رفع 20 من أصل 49 ملفًا، ويتبقى 29
 
-تنبيه: ملفات `lib` ذات الأسماء التي تبدأ بشرطة سفلية في الدفعة الأولى هي Whacka stubs توثّق واجهات المنصة ولا تقدم تنفيذ الخدمات نفسها.
+تنبيه: ملفات lib الموردة تصف نفسها على أنها Whacka stubs؛ وجودها في المستودع يحافظ على مسارات الملفات وأسماء الواجهات، لكنه لا يوفّر تنفيذ خدمات المنصة.
 
 ملفات App.jsx وملفات الخدمة تستورد وحدات من هذه المسارات؛ لذلك React export غير مكتمل ولا ينبغي اعتبار نجاح ZIP على أنه نجاح بناء React.
 

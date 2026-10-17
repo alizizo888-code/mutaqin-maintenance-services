@@ -5,15 +5,14 @@
 - Top-level source files under `src/`: `App.jsx`, `main.jsx`, `index.css`, `registration.js`, `serviceShowcase.js`, `serviceTree.js`, `warranty.js`, `workflow.js`, `aiAdapter.js`, `assignment.js`, `constants.js`, `mutqanAi.js`, `notify.js`, `passkey.js`, `payment.js`, `pricing.js`
 - 20 top-level page files under `src/pages/`, including `NewOrder.jsx`, `ClientOrderDetail.jsx`, `StaffGate.jsx`, `OperationsRoom.jsx`, technician pages, payment pages, AI settings and handoff detail.
 - 11 customer-facing pages under `src/pages/client/`: `Home.jsx`, `More.jsx`, `MyOrders.jsx`, `MyWarranties.jsx`, `Offers.jsx`, `Services.jsx`, `Store.jsx`, `Account.jsx`, `AiChat.jsx`, `Calculator.jsx`, `Contact.jsx`.
-- First `lib/` upload batch: 20 of 49 files, stored under `src/lib/`.
+- `lib/` complete: 49 of 49 uploaded files stored under `src/lib/` in three batches (20 + 20 + 9). The duplicate-upload suffix `(1)` was removed from filenames such as `useLive(1).js` to preserve expected import names.
 
 ## Still missing
 The following directories are still incomplete or pending:
 - `src/components/` — not yet uploaded
 - `src/hooks/` — not yet uploaded
-- `src/lib/` — 20 of 49 files uploaded; 29 remain in the next two batches
 
-The 11 uploaded client pages now live in `src/pages/client/`. Note that the first 20 `lib/` files are Whacka platform stubs; they resolve API names but deliberately throw when called, so the integration must be replaced or configured before independent runtime use.
+The 11 uploaded client pages live in `src/pages/client/`. All 49 supplied `lib/` files are now uploaded. Important: the supplied files explicitly describe themselves as Whacka platform stubs; they document API names but deliberately throw when called. Replace or implement these platform services before independent runtime use.
 
 This export is incomplete until those folders and their dependencies are uploaded. The original Whacka README is preserved at `reference/original-uploads/react-export-README-original.md`. It states that authentication, database, storage, AI, payments, push and platform bootstrap rely on Whacka services not included in the export; those integrations will need replacement or configuration for independent hosting.
 
