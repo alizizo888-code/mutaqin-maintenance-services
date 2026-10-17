@@ -33,3 +33,14 @@ ZIP الحالي يُبنى تلقائيًا من شجرة المستودع؛ ب
 - ملفات Whacka الأساسية التي كانت ترمي أخطاء استُبدلت بواجهات توافق تجريبية للسماح بتحميل واجهة React واختبارها.
 - الوضع الحالي **محلي تجريبي فقط**: بيانات React تُحفظ في `localStorage` لكل متصفح، ولا تتزامن بين العملاء والفنيين، ولا يوجد تسجيل دخول خادمي أو دفع أو إشعارات Push أو AI متصل.
 - لا تستخدم وضع المعاينة لتشغيل صيانة حقيقية أو تخزين بيانات عملاء إنتاجية. يلزم ربط خدمة خلفية موثوقة وصلاحيات خادمية قبل الإطلاق.
+
+
+## PHP customer-first portal update (2026-10-17)
+
+The root index.php is now the Arabic, RTL customer entry point. Visitors browse the service catalog, select a category and sub-service, then continue as a guest, register as a customer, or apply as a service provider. The role portals are server-session based:
+- client: own requests and request conversations.
+- technician: assigned tasks only, task status progression, and opt-in GPS location updates.
+- operations: request queue, manual technician selection/assignment, review of completion, and request conversations.
+- owner: all operational requests, pending provider decisions, staff overview data, and in-app notifications.
+
+Run database/migrations/20261017_role_based_portals.sql once after the base schema. It seeds ali, ali1, ali2, and ali3 as temporary test accounts and forces a password change on first login. Back up your database first and change those passwords before production. Do not commit config.local.php or production secrets. WhatsApp routing requires setting WHATSAPP_BUSINESS_NUMBER in that local config. GPS needs HTTPS; otherwise provide the address manually. Notifications are in-app only; there is no external SMS/OTP or push provider configured yet.

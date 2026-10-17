@@ -20,6 +20,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Lint PHP and browser JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y php-cli
+          find . -path './react-export' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+          node --check assets/mutqan.js
+
       - name: Build and validate ZIP
         shell: bash
         run: |

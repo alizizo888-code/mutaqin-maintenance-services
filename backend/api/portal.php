@@ -2,6 +2,8 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../helpers/portal.php';
 require_once __DIR__ . '/../config/db.php';
+$configFile = __DIR__ . '/../config/config.local.php';
+if (is_file($configFile)) require_once $configFile;
 
 mutqan_start_session();
 $action = (string)($_GET['action'] ?? 'dashboard');
@@ -31,9 +33,9 @@ function mutqan_request_row(PDO $pdo, int $id): ?array {
 }
 
 function mutqan_can_access_request(array $user, array $request, ?string $guestToken): bool {
-    if (in_array($user['role'], ['owner','operations'], true)) return true;
-    if ($user['role'] === 'technician' && (int)($request['assigned_user_id'] ?? 0) === (int)$user['id']) return true;
-    if ($user['role'] === 'client' && (int)($request['created_by_user_id'] ?? 0) === (int)$user['id']) return true;
+    if (!empty($user['role']) && in_array($user['role'], ['owner','operations'], true)) return true;
+    if (($user['role'] ?? '') === 'technician' && (int)($request['assigned_user_id'] ?? 0) === (int)$user['id']) return true;
+    if (($user['role'] ?? '') === 'client' && (int)($request['created_by_user_id'] ?? 0) === (int)$user['id']) return true;
     $stored = (string)($request['guest_token_hash'] ?? '');
     return $guestToken !== null && $guestToken !== '' && $stored !== '' && hash_equals($stored, hash('sha256', $guestToken));
 }
@@ -168,6 +170,36 @@ try {
         ]);
     }
 
+    if ($action === 'send_message') {
+        $requestId = (int)($input['request_id'] ?? 0);
+        $message = trim((string)($input['message'] ?? ''));
+        if ($requestId <= 0 || $message === '' || mb_strlen($message) > 3000) mutqan_json(422, ['status' => 'error', 'message' => 'اكتب رسالة من 1 إلى 3000 حرف.']);
+        $req = mutqan_request_row($pdo, $requestId);
+        if (!$req) mutqan_json(404, ['status' => 'error', 'message' => 'الطلب غير موجود.']);
+        $user = mutqan_current_user($pdo);
+        $guestToken = isset($input['guest_token']) ? (string)$input['guest_token'] : null;
+        if (!$user && !mutqan_can_access_request([], $req, $guestToken)) mutqan_json(403, ['status' => 'error', 'message' => 'رابط المحادثة غير صالح.']);
+        if ($user && !mutqan_can_access_request($user, $req, $guestToken)) mutqan_json(403, ['status' => 'error', 'message' => 'ليس لديك صلاحية إرسال رسالة لهذا الطلب.']);
+        if (in_array($req['status'], ['completed','cancelled'], true)) mutqan_json(409, ['status' => 'error', 'message' => 'المحادثة مغلقة مع انتهاء الطلب.']);
+        $senderName = $user ? (string)$user['full_name'] : trim((string)($input['guest_name'] ?? $req['customer_name'] ?? 'الزائر'));
+        $stmt = $pdo->prepare("INSERT INTO app_messages (request_id, sender_user_id, sender_name, message) VALUES (:rid,:uid,:name,:message)");
+        $stmt->execute([':rid' => $requestId, ':uid' => $user ? $user['id'] : null, ':name' => mb_substr($senderName, 0, 120), ':message' => $message]);
+        $recipients = [];
+        if ($user && $user['role'] === 'client') {
+            $q = $pdo->prepare("SELECT id FROM app_users WHERE role IN ('operations','owner') AND status='active'");
+            $q->execute(); $recipients = $q->fetchAll();
+        } elseif ($user && $user['role'] === 'technician') {
+            $q = $pdo->prepare("SELECT id FROM app_users WHERE role IN ('operations','owner') AND status='active'");
+            $q->execute(); $recipients = $q->fetchAll();
+            if ((int)($req['created_by_user_id'] ?? 0) > 0) $recipients[] = ['id' => (int)$req['created_by_user_id']];
+        } else {
+            $q = $pdo->prepare("SELECT id FROM app_users WHERE role IN ('operations','owner') AND status='active'");
+            $q->execute(); $recipients = $q->fetchAll();
+        }
+        foreach ($recipients as $recipient) if (!$user || (int)$recipient['id'] !== (int)$user['id']) mutqan_notify($pdo, (int)$recipient['id'], 'رسالة جديدة في الطلب #' . $requestId, mb_substr($message, 0, 300), 'request', $requestId);
+        mutqan_json(201, ['status' => 'success', 'message' => 'تم إرسال الرسالة.']);
+    }
+
     $actor = mutqan_require_user($pdo, ['technician','operations','owner']);
     if ($actor['role'] === 'technician' && $actor['must_change_password']) mutqan_json(428, ['status' => 'error', 'must_change_password' => true, 'message' => 'غيّر كلمة المرور المؤقتة أولاً.']);
 
@@ -273,35 +305,7 @@ try {
         mutqan_json(200, ['status' => 'success', 'maps_url' => 'https://www.google.com/maps?q=' . rawurlencode((string)$lat . ',' . (string)$lng)]);
     }
 
-    if ($action === 'send_message') {
-        $requestId = (int)($input['request_id'] ?? 0);
-        $message = trim((string)($input['message'] ?? ''));
-        if ($requestId <= 0 || $message === '' || mb_strlen($message) > 3000) mutqan_json(422, ['status' => 'error', 'message' => 'اكتب رسالة من 1 إلى 3000 حرف.']);
-        $req = mutqan_request_row($pdo, $requestId);
-        if (!$req) mutqan_json(404, ['status' => 'error', 'message' => 'الطلب غير موجود.']);
-        $user = mutqan_current_user($pdo);
-        $guestToken = isset($input['guest_token']) ? (string)$input['guest_token'] : null;
-        if (!$user && !mutqan_can_access_request([], $req, $guestToken)) mutqan_json(403, ['status' => 'error', 'message' => 'رابط المحادثة غير صالح.']);
-        if ($user && !mutqan_can_access_request($user, $req, $guestToken)) mutqan_json(403, ['status' => 'error', 'message' => 'ليس لديك صلاحية إرسال رسالة لهذا الطلب.']);
-        if (in_array($req['status'], ['completed','cancelled'], true)) mutqan_json(409, ['status' => 'error', 'message' => 'المحادثة مغلقة مع انتهاء الطلب.']);
-        $senderName = $user ? (string)$user['full_name'] : trim((string)($input['guest_name'] ?? $req['customer_name'] ?? 'الزائر'));
-        $stmt = $pdo->prepare("INSERT INTO app_messages (request_id, sender_user_id, sender_name, message) VALUES (:rid,:uid,:name,:message)");
-        $stmt->execute([':rid' => $requestId, ':uid' => $user ? $user['id'] : null, ':name' => mb_substr($senderName, 0, 120), ':message' => $message]);
-        $recipients = [];
-        if ($user && $user['role'] === 'client') {
-            $q = $pdo->prepare("SELECT id FROM app_users WHERE role IN ('operations','owner') AND status='active'");
-            $q->execute(); $recipients = $q->fetchAll();
-        } elseif ($user && $user['role'] === 'technician') {
-            $q = $pdo->prepare("SELECT id FROM app_users WHERE role IN ('operations','owner') AND status='active'");
-            $q->execute(); $recipients = $q->fetchAll();
-            if ((int)($req['created_by_user_id'] ?? 0) > 0) $recipients[] = ['id' => (int)$req['created_by_user_id']];
-        } else {
-            $q = $pdo->prepare("SELECT id FROM app_users WHERE role IN ('operations','owner') AND status='active'");
-            $q->execute(); $recipients = $q->fetchAll();
-        }
-        foreach ($recipients as $recipient) if (!$user || (int)$recipient['id'] !== (int)$user['id']) mutqan_notify($pdo, (int)$recipient['id'], 'رسالة جديدة في الطلب #' . $requestId, mb_substr($message, 0, 300), 'request', $requestId);
-        mutqan_json(201, ['status' => 'success', 'message' => 'تم إرسال الرسالة.']);
-    }
+
 
     mutqan_json(404, ['status' => 'error', 'message' => 'العملية المطلوبة غير معروفة.']);
 } catch (Throwable $e) {

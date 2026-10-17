@@ -139,5 +139,5 @@ try {
     mutqan_json(404, ['status' => 'error', 'message' => 'العملية المطلوبة غير معروفة.']);
 } catch (Throwable $e) {
     error_log('[MUTQAN auth] ' . $e->getMessage());
-    mutqan_json(503, ['status' => 'error', 'message' => 'تعذر إكمال العملية. تأكد من تثبيت قاعدة البيانات وتطبيق ملف migration الخاص بالصلاحيات.']);
+    mutqan_json(503, ['status' => 'error', 'csrf_token' => mutqan_csrf_token(), 'user' => null, 'message' => 'تعذر إكمال العملية. تأكد من تثبيت قاعدة البيانات وتطبيق ملف migration الخاص بالصلاحيات.']);
 }

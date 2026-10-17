@@ -7,3 +7,6 @@ define('DB_HOST', 'localhost');
 define('DB_NAME', 'CHANGE_ME');
 define('DB_USER', 'CHANGE_ME');
 define('DB_PASS', 'CHANGE_ME');
+
+// Optional international phone number for WhatsApp Business (digits only, e.g. country code + number).
+define('WHATSAPP_BUSINESS_NUMBER', '');
