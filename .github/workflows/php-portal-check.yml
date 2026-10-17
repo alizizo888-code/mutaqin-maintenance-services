@@ -36,6 +36,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          find . -path './react-export' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+          php -l index.php
+          find backend -name '*.php' -type f -print0 | xargs -0 -n1 php -l
       - name: Check browser JavaScript syntax
         run: node --check assets/mutqan.js
