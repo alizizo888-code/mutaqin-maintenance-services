@@ -55,7 +55,7 @@ function mutqan_dashboard(PDO $pdo, array $user): array {
         $data['technician_record'] = $loc->fetch() ?: null;
     } elseif (in_array($user['role'], ['operations','owner'], true)) {
         $data['requests'] = $pdo->query("SELECT r.*, COALESCE(r.requester_name,c.name) AS customer_name, COALESCE(r.requester_phone,c.phone) AS customer_phone, COALESCE(r.service_address,c.address) AS customer_address, t.name AS technician_name, au.full_name AS assigned_technician_name FROM system_3_requests r LEFT JOIN system_1_clients c ON c.id=r.client_id LEFT JOIN system_2_technicians t ON t.id=r.tech_id LEFT JOIN app_users au ON au.id=r.assigned_user_id ORDER BY FIELD(r.status,'new','assigned','accepted','en_route','in_progress','awaiting_approval','completed','cancelled'), r.id DESC LIMIT 200")->fetchAll();
-        $data['technicians'] = $pdo->query("SELECT t.id AS technician_id, t.user_id, t.name, t.specialty, t.rating, t.status AS technician_status, t.latitude, t.longitude, u.full_name, u.phone, u.service_area FROM system_2_technicians t INNER JOIN app_users u ON u.id=t.user_id WHERE u.role='technician' AND u.status='active' AND t.status IN ('available','busy') ORDER BY t.status, t.name")->fetchAll();
+        $data['technicians'] = $pdo->query("SELECT t.id AS technician_id, t.user_id, t.name, t.specialty, t.rating, t.status AS technician_status, t.latitude, t.longitude, u.full_name, u.phone, u.service_area FROM system_2_technicians t INNER JOIN app_users u ON u.id=t.user_id WHERE u.role='technician' AND u.status='active' AND t.status='available' ORDER BY t.name")->fetchAll();
         $data['stats'] = [
             'new' => (int)$pdo->query("SELECT COUNT(*) FROM system_3_requests WHERE status='new'")->fetchColumn(),
             'active' => (int)$pdo->query("SELECT COUNT(*) FROM system_3_requests WHERE status IN ('assigned','accepted','en_route','in_progress','awaiting_approval')")->fetchColumn(),
@@ -211,7 +211,7 @@ try {
         $req = mutqan_request_row($pdo, $requestId);
         if (!$req) mutqan_json(404, ['status' => 'error', 'message' => 'الطلب غير موجود.']);
         if (in_array($req['status'], ['completed','cancelled'], true)) mutqan_json(409, ['status' => 'error', 'message' => 'لا يمكن إسناد طلب مغلق.']);
-        $findTech = $pdo->prepare("SELECT t.id AS technician_id, t.user_id, t.status, u.full_name FROM system_2_technicians t JOIN app_users u ON u.id=t.user_id WHERE t.user_id=:uid AND u.role='technician' AND u.status='active' AND t.status IN ('available','busy') LIMIT 1");
+        $findTech = $pdo->prepare("SELECT t.id AS technician_id, t.user_id, t.status, u.full_name FROM system_2_technicians t JOIN app_users u ON u.id=t.user_id WHERE t.user_id=:uid AND u.role='technician' AND u.status='active' AND t.status='available' LIMIT 1");
         $findTech->execute([':uid' => $techUserId]);
         $tech = $findTech->fetch();
         if (!$tech) mutqan_json(422, ['status' => 'error', 'message' => 'الفني غير معتمد أو غير متاح للإسناد.']);
@@ -287,7 +287,10 @@ try {
         $newStatus = $decision === 'approve' ? 'completed' : 'in_progress';
         $pdo->prepare("UPDATE system_3_requests SET status=:status, updated_at=NOW() WHERE id=:id")->execute([':status' => $newStatus, ':id' => $requestId]);
         if ($decision === 'approve' && (int)($req['tech_id'] ?? 0) > 0) {
-            $pdo->prepare("UPDATE system_2_technicians SET status='available', updated_at=NOW() WHERE id=:id")->execute([':id' => $req['tech_id']]);
+            $remaining = $pdo->prepare("SELECT COUNT(*) FROM system_3_requests WHERE assigned_user_id=:uid AND id<>:rid AND status IN ('assigned','accepted','en_route','in_progress','awaiting_approval')");
+            $remaining->execute([':uid' => (int)($req['assigned_user_id'] ?? 0), ':rid' => $requestId]);
+            $technicianStatus = ((int)$remaining->fetchColumn() > 0) ? 'busy' : 'available';
+            $pdo->prepare("UPDATE system_2_technicians SET status=:status, updated_at=NOW() WHERE id=:id")->execute([':status' => $technicianStatus, ':id' => $req['tech_id']]);
         }
         if ((int)($req['created_by_user_id'] ?? 0) > 0) mutqan_notify($pdo, (int)$req['created_by_user_id'], 'تمت مراجعة طلبك #' . $requestId, $decision === 'approve' ? 'تم اعتماد إنجاز الخدمة وإغلاق الطلب.' : 'أُعيدت المهمة للفني لاستكمال العمل.', 'request', $requestId);
         if ((int)($req['assigned_user_id'] ?? 0) > 0 && $decision === 'reopen') mutqan_notify($pdo, (int)$req['assigned_user_id'], 'استكمال المهمة #' . $requestId, 'أعادت العمليات المهمة لاستكمال العمل.', 'request', $requestId);
