@@ -116,7 +116,7 @@ try {
             if($qty<=0||$qty>10000||$price<0) mutqan_json(422,['status'=>'error','message'=>'الكمية أو السعر غير صحيح.']);
             $item=null;
             if($catalogId>0){$s=$pdo->prepare("SELECT id,item_code,item_name,base_price,vat_rate,vat_exempt FROM mutqan_price_catalog WHERE id=:id AND is_active=1 LIMIT 1");$s->execute([':id'=>$catalogId]);$item=$s->fetch();if(!$item)mutqan_json(422,['status'=>'error','message'=>'أحد بنود الكتالوج لم يعد متاحاً.']);}
-            $name=trim((string)($line['item_name']??($item['item_name']??''))); if($name==='')mutqan_json(422,['status'=>'422','message'=>'اسم البند مطلوب.']);
+            $name=trim((string)($line['item_name']??($item['item_name']??''))); if($name==='')mutqan_json(422,['status'=>'error','message'=>'اسم البند مطلوب.']);
             $rate=empty($settings['vat_enabled'])?0.0:(float)($item['vat_rate']??$settings['vat_rate']); $exempt=!empty($item['vat_exempt']);
             $entered=round($qty*$price,2);
             if ($exempt || empty($settings['vat_enabled'])) { $net=$entered; $tax=0.0; $total=$entered; }
