@@ -39,8 +39,15 @@ try {
         $items=$q->fetchAll();
         foreach($items as &$item){
             $rate=empty($settings['vat_enabled'])||!empty($item['vat_exempt'])?0.0:(float)$item['vat_rate'];
-            $item['vat_amount']=round((float)$item['base_price']*$rate/100,2);
-            $item['price_with_vat']=round((float)$item['base_price']+$item['vat_amount'],2);
+            if (!empty($settings['prices_include_vat']) && $rate>0) {
+                $item['vat_amount']=round((float)$item['base_price']*$rate/(100+$rate),2);
+                $item['price_with_vat']=round((float)$item['base_price'],2);
+                $item['base_price_ex_vat']=round((float)$item['base_price']-$item['vat_amount'],2);
+            } else {
+                $item['vat_amount']=round((float)$item['base_price']*$rate/100,2);
+                $item['price_with_vat']=round((float)$item['base_price']+$item['vat_amount'],2);
+                $item['base_price_ex_vat']=round((float)$item['base_price'],2);
+            }
         }
         mutqan_json(200,['status'=>'success','visible'=>true,'settings'=>['vat_enabled'=>(bool)$settings['vat_enabled'],'vat_rate'=>(float)$settings['vat_rate'],'prices_include_vat'=>(bool)$settings['prices_include_vat'],'show_customer_prices'=>(bool)$settings['show_customer_prices'],'show_technician_catalog'=>(bool)$settings['show_technician_catalog']],'items'=>$items]);
     }
@@ -111,7 +118,10 @@ try {
             if($catalogId>0){$s=$pdo->prepare("SELECT id,item_code,item_name,base_price,vat_rate,vat_exempt FROM mutqan_price_catalog WHERE id=:id AND is_active=1 LIMIT 1");$s->execute([':id'=>$catalogId]);$item=$s->fetch();if(!$item)mutqan_json(422,['status'=>'error','message'=>'أحد بنود الكتالوج لم يعد متاحاً.']);}
             $name=trim((string)($line['item_name']??($item['item_name']??''))); if($name==='')mutqan_json(422,['status'=>'422','message'=>'اسم البند مطلوب.']);
             $rate=empty($settings['vat_enabled'])?0.0:(float)($item['vat_rate']??$settings['vat_rate']); $exempt=!empty($item['vat_exempt']);
-            $net=round($qty*$price,2); $tax=($exempt?0.0:round($net*$rate/100,2)); $total=round($net+$tax,2);
+            $entered=round($qty*$price,2);
+            if ($exempt || empty($settings['vat_enabled'])) { $net=$entered; $tax=0.0; $total=$entered; }
+            elseif (!empty($settings['prices_include_vat'])) { $total=$entered; $tax=round($entered*$rate/(100+$rate),2); $net=round($entered-$tax,2); }
+            else { $net=$entered; $tax=round($net*$rate/100,2); $total=round($net+$tax,2); }
             $subtotal+=$net; $vatTotal+=$tax;
             $prepared[]=['catalog_item_id'=>$catalogId?:null,'item_code'=>$item['item_code']??null,'item_name'=>$name,'description'=>trim((string)($line['description']??'')),'quantity'=>$qty,'unit_price'=>$price,'vat_rate'=>$rate,'vat_exempt'=>$exempt?1:0,'line_subtotal'=>$net,'line_vat'=>$tax,'line_total'=>$total,'is_custom'=>$item?0:1];
         }
