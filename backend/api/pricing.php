@@ -116,14 +116,13 @@ try {
             $catalogId=(int)($line['catalog_item_id']??0); $qty=(float)($line['quantity']??1); $price=(float)($line['unit_price']??-1);
             if($qty<=0||$qty>10000||$price<0) mutqan_json(422,['status'=>'error','message'=>'الكمية أو السعر غير صحيح.']);
             $item=null;
-            if($catalogId>0){$s=$pdo->prepare("SELECT id,item_code,item_name,base_price,vat_rate,vat_exempt FROM mutqan_price_catalog WHERE id=:id AND is_active=1 LIMIT 1");$s->execute([':id'=>$catalogId]);$item=$s->fetch();if(!$item)mutqan_json(422,['status'=>'error','message'=>'أحد بنود الكتالوج لم يعد متاحاً.']);}
+            if($catalogId>0){$s=$pdo->prepare("SELECT id,item_code,item_name,base_price,vat_rate,vat_exempt FROM mutqan_price_catalog WHERE id=:id AND is_active=1 AND (:allow_hidden=1 OR visible_to_technician=1) LIMIT 1");$s->execute([':id'=>$catalogId,':allow_hidden'=>in_array($user['role'],['owner','operations'],true)?1:0]);$item=$s->fetch();if(!$item)mutqan_json(422,['status'=>'error','message'=>'أحد بنود الكتالوج غير متاح لهذا المستخدم أو لم يعد فعالاً.']);}
             $name=trim((string)($line['item_name']??($item['item_name']??''))); if($name==='')mutqan_json(422,['status'=>'error','message'=>'اسم البند مطلوب.']);
             $rate=empty($settings['vat_enabled'])?0.0:(float)($item['vat_rate']??$settings['vat_rate']); $exempt=!empty($item['vat_exempt']);
             $entered=round($qty*$price,2);
             if ($exempt || empty($settings['vat_enabled'])) { $net=$entered; $tax=0.0; $total=$entered; }
             elseif (!empty($settings['prices_include_vat'])) { $total=$entered; $tax=round($entered*$rate/(100+$rate),2); $net=round($entered-$tax,2); }
-            else { $net=$entered; $tax=round($net*$rate/100,2); $total=round($net+$tax,2); }
-            $subtotal+=$net; $vatTotal+=$tax;
+            else { $net=$entered; $tax=round($net*$rate/100,2); $total=round($net+$tax,2); }            $subtotal+=$net; $vatTotal+=$tax;
             $prepared[]=['catalog_item_id'=>$catalogId?:null,'item_code'=>$item['item_code']??null,'item_name'=>$name,'description'=>trim((string)($line['description']??'')),'quantity'=>$qty,'unit_price'=>$price,'vat_rate'=>$rate,'vat_exempt'=>$exempt?1:0,'line_subtotal'=>$net,'line_vat'=>$tax,'line_total'=>$total,'is_custom'=>$item?0:1];
         }
         $pdo->beginTransaction();
