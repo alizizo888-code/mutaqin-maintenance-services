@@ -55,3 +55,20 @@ The existing repository README states that the current React preview stores data
 - Confirm customer notifications render and open the correct request.
 - Wire upload handling for technician-supplied invoice and part photos using the repository's local upload/hash binding approach.
 - Connect request creation and existing request detail screens without changing historical request prices.
+
+## Front-end work added on this branch
+
+- `react-export/src/hooks/usePricingCatalog.js`: catalogue, service-range and visibility settings data access.
+- `react-export/src/pages/PricingCatalog.jsx`: owner/operations catalogue editor, coded parts, VAT settings, price-range editor and independent customer/technician visibility switches.
+- `react-export/src/components/RequestQuotePanel.jsx`: technician quote builder (catalogued or custom line items), VAT breakdown, and customer approve/reject UI.
+- `react-export/src/pages/NewOrder.jsx`: AC equipment type selection (18/24/30/36 split, pressure, concealed, package, central, chiller) and indicative ranges.
+- Request detail screens show device type and quote approval; operations room has a direct catalogue link.
+- React build workflow now runs on feature branches and pull requests.
+
+## Critical production limitation — do not skip
+
+The repository's React export currently uses `runtimeData.js`, which explicitly stores data in browser `localStorage` only. The UI additions above use that existing adapter for the React preview; they do **not** synchronize records between the customer, technician, operations and owner devices. The PHP pricing API and MySQL migration are the production backend foundation, but the React UI has not yet been connected to the PHP session/CSRF API. Therefore:
+- Do not publish the React preview as a live multi-user pricing workflow.
+- Do not apply the migration to the production database until a verified backup and staging test.
+- Do not merge/deploy as production-ready until the shared PHP auth/session adapter is wired to these screens and end-to-end tests pass.
+- Technician receipt/part-photo and expense-photo uploads remain a separate unfinished integration.
