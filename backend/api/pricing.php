@@ -26,7 +26,7 @@ try {
     if ($method==='GET' && $action==='catalog') {
         $user=mutqan_require_user($pdo,['owner','operations','technician','client']);
         $settings=pricing_settings($pdo);
-        if ($user['role']==='client' && empty($settings['show_customer_prices'])) mutqan_json(200,['status'=>'success','visible'=>false,'items'=>[]]);
+        if ($user['role']==='client' && empty($settings['show_parts_catalog_to_customer'])) mutqan_json(200,['status'=>'success','visible'=>false,'items'=>[]]);
         if ($user['role']==='technician' && empty($settings['show_technician_catalog'])) mutqan_json(200,['status'=>'success','visible'=>false,'items'=>[]]);
         $service=trim((string)($_GET['service_key']??''));
         $sql="SELECT id,item_code,item_name,category,service_key,item_type,unit_name,base_price,vat_rate,vat_exempt,min_price,max_price FROM mutqan_price_catalog WHERE is_active=1";
@@ -54,7 +54,7 @@ try {
     if ($method==='GET' && $action==='ranges') {
         $user=mutqan_require_user($pdo,['owner','operations','technician','client']);
         $settings=pricing_settings($pdo);
-        if (($user['role']==='client' && empty($settings['show_customer_prices'])) || ($user['role']==='technician' && empty($settings['show_technician_catalog']))) mutqan_json(200,['status'=>'success','visible'=>false,'ranges'=>[]]);
+        if (($user['role']==='client' && (empty($settings['show_customer_prices']) || empty($settings['show_price_ranges']))) || ($user['role']==='technician' && (empty($settings['show_technician_prices']) || empty($settings['show_price_ranges'])))) mutqan_json(200,['status'=>'success','visible'=>false,'ranges'=>[]]);
         $service=trim((string)($_GET['service_key']??''));
         $q=$pdo->prepare("SELECT service_key,issue_key,issue_label,min_price,max_price,vat_rate FROM mutqan_service_price_ranges WHERE is_active=1 AND (:service='' OR service_key=:service) ORDER BY service_key,issue_label");
         $q->execute([':service'=>$service]);
@@ -78,10 +78,11 @@ try {
         $user=mutqan_require_user($pdo,['owner','operations']);
         $rate=(float)($in['vat_rate']??15);
         if ($rate<0 || $rate>100) mutqan_json(422,['status'=>'error','message'=>'نسبة الضريبة يجب أن تكون بين 0 و100.']);
-        $pdo->prepare("UPDATE mutqan_pricing_settings SET vat_enabled=:enabled,vat_rate=:rate,prices_include_vat=:inclusive,show_customer_prices=:customer,show_technician_catalog=:tech,updated_by=:actor WHERE id=1")->execute([
+        $pdo->prepare("UPDATE mutqan_pricing_settings SET vat_enabled=:enabled,vat_rate=:rate,prices_include_vat=:inclusive,show_customer_prices=:customer,show_price_ranges=:ranges,show_parts_catalog_to_customer=:customer_catalog,show_technician_prices=:tech_prices,show_technician_catalog=:tech_catalog,updated_by=:actor WHERE id=1")->execute([
           ':enabled'=>!empty($in['vat_enabled'])?1:0,':rate'=>$rate,':inclusive'=>!empty($in['prices_include_vat'])?1:0,
-          ':customer'=>!empty($in['show_customer_prices'])?1:0,':tech'=>!empty($in['show_technician_catalog'])?1:0,':actor'=>$user['id']]);
-        mutqan_audit($pdo,(int)$user['id'],'update_pricing_settings','pricing_settings',1,['vat_rate'=>$rate,'vat_enabled'=>!empty($in['vat_enabled']),'show_customer_prices'=>!empty($in['show_customer_prices']),'show_technician_catalog'=>!empty($in['show_technician_catalog'])]);
+          ':customer'=>!empty($in['show_customer_prices'])?1:0,':ranges'=>!empty($in['show_price_ranges'])?1:0,':customer_catalog'=>!empty($in['show_parts_catalog_to_customer'])?1:0,
+          ':tech_prices'=>!empty($in['show_technician_prices'])?1:0,':tech_catalog'=>!empty($in['show_technician_catalog'])?1:0,':actor'=>$user['id']]);
+        mutqan_audit($pdo,(int)$user['id'],'update_pricing_settings','pricing_settings',1,['vat_rate'=>$rate,'vat_enabled'=>!empty($in['vat_enabled']),'show_customer_prices'=>!empty($in['show_customer_prices']),'show_price_ranges'=>!empty($in['show_price_ranges']),'show_parts_catalog_to_customer'=>!empty($in['show_parts_catalog_to_customer']),'show_technician_prices'=>!empty($in['show_technician_prices']),'show_technician_catalog'=>!empty($in['show_technician_catalog'])]);
         mutqan_json(200,['status'=>'success','message'=>'تم حفظ إعدادات التسعير والضريبة.']);
     }
     if ($action==='save_item') {
