@@ -8,6 +8,9 @@ CREATE TABLE IF NOT EXISTS mutqan_pricing_settings (
   vat_rate DECIMAL(5,2) NOT NULL DEFAULT 15.00,
   prices_include_vat TINYINT(1) NOT NULL DEFAULT 0,
   show_customer_prices TINYINT(1) NOT NULL DEFAULT 1,
+  show_price_ranges TINYINT(1) NOT NULL DEFAULT 1,
+  show_parts_catalog_to_customer TINYINT(1) NOT NULL DEFAULT 0,
+  show_technician_prices TINYINT(1) NOT NULL DEFAULT 1,
   show_technician_catalog TINYINT(1) NOT NULL DEFAULT 1,
   updated_by INT UNSIGNED NULL,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
