@@ -20,6 +20,7 @@ import PermissionHelp from '../components/PermissionHelp'
 import { permissionState } from '../hooks/useLocator'
 import { branchesFor, selectionSummary } from '../serviceTree'
 import { usePricingCatalog } from '../hooks/usePricingCatalog'
+import { usePricing } from '../hooks/usePricing'
 
 const inputCls = 'w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 shadow-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15'
 
@@ -50,7 +51,10 @@ export default function NewOrder() {
   const [serviceSel, setServiceSel] = useState(null)
   const [deviceType, setDeviceType] = useState('')
   const { ranges: priceRanges, display: priceDisplay } = usePricingCatalog()
-  const visibleRanges = priceRanges.filter((r) => r.serviceKey === specialtyId && (!serviceSel?.branchId || !r.branchId || r.branchId === serviceSel.branchId))
+  const { rules: servicePricingRules } = usePricing()
+  const catalogRanges = priceRanges.filter((r) => r.serviceKey === specialtyId && (!serviceSel?.branchId || !r.branchId || r.branchId === serviceSel.branchId))
+  const rule = servicePricingRules[specialtyId]
+  const visibleRanges = catalogRanges.length ? catalogRanges : (rule && rule.min > 0 ? [{ id: 'rule-' + specialtyId, label: serviceSel?.branchLabel || 'الخدمة المختارة', min: rule.min, max: rule.max }] : [])
   const [locDenied, setLocDenied] = useState(false)
   useEffect(() => { setServiceSel(null) }, [specialtyId])
 
