@@ -12,6 +12,7 @@ import RatingStars from '../components/RatingStars'
 import { SPECIALTIES } from '../constants'
 import { useWarrantyPolicy } from '../hooks/useWarranty'
 import { orderWarranty, warrantyText } from '../warranty'
+import RequestQuotePanel from '../components/RequestQuotePanel'
 
 export default function ClientOrderDetail() {
   const { id } = useParams()
@@ -99,6 +100,7 @@ export default function ClientOrderDetail() {
       </header>
 
       <div className="max-w-2xl mx-auto w-full px-4 pt-5 flex flex-col gap-5">
+        {order.priceQuote && <RequestQuotePanel order={order} customer />}
         {order.description && (
           <Card>
             <p className="text-sm text-slate-700 leading-relaxed">{order.description}</p>
