@@ -81,6 +81,8 @@ export default function PricingCatalog() {
           <Field label="سعر القطعة قبل الضريبة (ر.س)"><input required type="number" min="0" step="0.01" className={input} value={item.basePrice} onChange={update(setItem,'basePrice')}/></Field>
           <Field label="الوحدة"><input className={input} value={item.unit} onChange={update(setItem,'unit')}/></Field>
           <label className="flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={!!item.vatExempt} onChange={update(setItem,'vatExempt')}/> معفى من الضريبة</label>
+          <label className="flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={!!item.visibleToCustomer} onChange={update(setItem,'visibleToCustomer')}/> إظهار هذا البند للعميل</label>
+          <label className="flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={item.visibleToTechnician !== false} onChange={update(setItem,'visibleToTechnician')}/> إظهار هذا البند للفني</label>
           <button disabled={busy} className="rounded-xl bg-slate-900 text-white py-2.5 font-bold disabled:opacity-50">{editingItem ? 'حفظ التعديل' : <><Plus size={15} className="inline"/> إضافة إلى الجدول</>}</button>
         </form>
         <div className="mt-4 overflow-x-auto"><table className="w-full text-right text-xs min-w-[520px]"><thead><tr className="border-b text-slate-500"><th className="p-2">الكود</th><th className="p-2">القطعة</th><th className="p-2">قبل الضريبة</th><th className="p-2">الضريبة</th><th className="p-2">الإجمالي</th><th className="p-2">إجراء</th></tr></thead><tbody>
