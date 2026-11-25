@@ -101,6 +101,7 @@ export default function ClientOrderDetail() {
 
       <div className="max-w-2xl mx-auto w-full px-4 pt-5 flex flex-col gap-5">
         {order.priceQuote && <RequestQuotePanel order={order} customer />}
+        {order.deviceType && <Card><p className="text-xs font-bold text-slate-500 mb-1">نوع الجهاز</p><p className="text-sm text-slate-700">{order.deviceType}</p></Card>}
         {order.description && (
           <Card>
             <p className="text-sm text-slate-700 leading-relaxed">{order.description}</p>
