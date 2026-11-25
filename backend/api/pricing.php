@@ -127,6 +127,7 @@ try {
             $prepared[]=['catalog_item_id'=>$catalogId?:null,'item_code'=>$item['item_code']??null,'item_name'=>$name,'description'=>trim((string)($line['description']??'')),'quantity'=>$qty,'unit_price'=>$price,'vat_rate'=>$rate,'vat_exempt'=>$exempt?1:0,'line_subtotal'=>$net,'line_vat'=>$tax,'line_total'=>$total,'is_custom'=>$item?0:1];
         }
         $pdo->beginTransaction();
+        $lock=$pdo->prepare("SELECT id FROM system_3_requests WHERE id=:id FOR UPDATE");$lock->execute([':id'=>$requestId]);
         $v=$pdo->prepare("SELECT COALESCE(MAX(version_no),0)+1 FROM mutqan_request_quotes WHERE request_id=:id");$v->execute([':id'=>$requestId]);$version=(int)$v->fetchColumn();
         $pdo->prepare("UPDATE mutqan_request_quotes SET status='superseded' WHERE request_id=:id AND status='pending_customer'")->execute([':id'=>$requestId]);
         $total=round($subtotal+$vatTotal,2);
@@ -143,13 +144,17 @@ try {
         $user=mutqan_require_user($pdo,['client','owner','operations']);
         $quoteId=(int)($in['quote_id']??0); $decision=(string)($in['decision']??'');
         if(!in_array($decision,['approved','rejected'],true))mutqan_json(422,['status'=>'error','message'=>'القرار غير صالح.']);
-        $s=$pdo->prepare("SELECT q.*,r.created_by_user_id,r.status AS request_status FROM mutqan_request_quotes q JOIN system_3_requests r ON r.id=q.request_id WHERE q.id=:id LIMIT 1");$s->execute([':id'=>$quoteId]);$quote=$s->fetch();
+        $pdo->beginTransaction();
+        $s=$pdo->prepare("SELECT q.*,r.created_by_user_id,r.assigned_user_id,r.status AS request_status FROM mutqan_request_quotes q JOIN system_3_requests r ON r.id=q.request_id WHERE q.id=:id LIMIT 1 FOR UPDATE");$s->execute([':id'=>$quoteId]);$quote=$s->fetch();
         if(!$quote)mutqan_json(404,['status'=>'error','message'=>'التسعيرة غير موجودة.']);
         if($user['role']==='client'&&(int)$quote['created_by_user_id']!==(int)$user['id'])mutqan_json(403,['status'=>'error','message'=>'لا يمكنك اتخاذ قرار على تسعيرة طلب لا يخصك.']);
         if($quote['status']!=='pending_customer')mutqan_json(409,['status'=>'error','message'=>'هذه التسعيرة لم تعد بانتظار القرار.']);
-        $pdo->beginTransaction();
         $pdo->prepare("UPDATE mutqan_request_quotes SET status=:status,customer_decided_by=:actor,customer_decided_at=NOW() WHERE id=:id")->execute([':status'=>$decision,':actor'=>$user['id'],':id'=>$quoteId]);
-        if($decision==='approved')$pdo->prepare("UPDATE mutqan_request_quotes SET status='superseded' WHERE request_id=:request AND id<>:id AND status='pending_customer'")->execute([':request'=>$quote['request_id'],':id'=>$quoteId]);
+        if($decision==='approved') {
+            $pdo->prepare("UPDATE system_3_requests SET approved_quote_id=:quote_id,quoted_total=:total,updated_at=NOW() WHERE id=:request_id")->execute([':quote_id'=>$quoteId,':total'=>$quote['total_amount'],':request_id'=>$quote['request_id']]);
+            $pdo->prepare("UPDATE mutqan_request_quotes SET status='superseded' WHERE request_id=:request AND id<>:id AND status='pending_customer'")->execute([':request'=>$quote['request_id'],':id'=>$quoteId]);
+        }
+        if(!empty($quote['assigned_user_id'])) mutqan_notify($pdo,(int)$quote['assigned_user_id'],$decision==='approved'?'العميل وافق على التسعيرة':'العميل رفض التسعيرة','تم تسجيل قرار العميل على التسعيرة رقم '.$quoteId.'.','quote',$quoteId);
         mutqan_audit($pdo,(int)$user['id'],'decide_request_quote','request_quote',$quoteId,['decision'=>$decision,'total_amount'=>$quote['total_amount']]);
         $pdo->commit();
         mutqan_json(200,['status'=>'success','message'=>$decision==='approved'?'تم اعتماد التسعيرة.':'تم رفض التسعيرة.']);
