@@ -3,6 +3,7 @@
 -- Apply once after the existing role-based portal migration.
 
 ALTER TABLE system_3_requests
+  ADD COLUMN device_type VARCHAR(120) NULL,
   ADD COLUMN approved_quote_id BIGINT UNSIGNED NULL,
   ADD COLUMN quoted_total DECIMAL(12,2) NULL;
 
