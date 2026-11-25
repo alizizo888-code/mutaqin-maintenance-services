@@ -19,6 +19,7 @@ import { maps } from '../lib/maps'
 import MapView from '../components/MapView'
 import StatusBadge from '../components/StatusBadge'
 import StatusTimeline from '../components/StatusTimeline'
+import RequestQuotePanel from '../components/RequestQuotePanel'
 import { SPECIALTIES } from '../constants'
 
 export default function OrderDetailStaff() {
@@ -243,6 +244,7 @@ export default function OrderDetailStaff() {
       </header>
 
       <div className="max-w-2xl mx-auto w-full px-4 pt-5 flex flex-col gap-5">
+        {(canAssign || isMyTask) && <RequestQuotePanel order={order} canEdit={canAssign || isMyTask} />}
         <Card>
           <p className="text-xs font-bold text-slate-500 mb-1">العميل</p>
           <p className="text-white font-bold">{order.clientName}</p>
