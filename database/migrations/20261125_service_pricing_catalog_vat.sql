@@ -2,6 +2,10 @@
 -- Additive migration: does not alter or delete existing customer, request, technician or finance records.
 -- Apply once after the existing role-based portal migration.
 
+ALTER TABLE system_3_requests
+  ADD COLUMN approved_quote_id BIGINT UNSIGNED NULL,
+  ADD COLUMN quoted_total DECIMAL(12,2) NULL;
+
 CREATE TABLE IF NOT EXISTS mutqan_pricing_settings (
   id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
   vat_enabled TINYINT(1) NOT NULL DEFAULT 1,
