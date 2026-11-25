@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import { Plus, Send, CheckCircle2, XCircle, Package } from 'lucide-react'
 import { db } from '../lib/db'
 import { usePricingCatalog } from '../hooks/usePricingCatalog'
+import { usePricing } from '../hooks/usePricing'
 
 export default function RequestQuotePanel({ order, canEdit = false, customer = false }) {
   const { items, ranges, display } = usePricingCatalog()
+  const { rules } = usePricing()
   const [catalogId, setCatalogId] = useState('')
   const [qty, setQty] = useState('1')
   const [unitPrice, setUnitPrice] = useState('')
@@ -15,7 +17,9 @@ export default function RequestQuotePanel({ order, canEdit = false, customer = f
   const [error, setError] = useState('')
   const quote = order?.priceQuote
   const serviceItems = useMemo(() => display.showPartsCatalogToTechnician ? items.filter((x) => !x.serviceKey || x.serviceKey === order?.specialtyId) : [], [items, order?.specialtyId, display.showPartsCatalogToTechnician])
-  const serviceRanges = ranges.filter((x) => x.serviceKey === order?.specialtyId)
+  const savedRanges = ranges.filter((x) => x.serviceKey === order?.specialtyId)
+  const rule = rules[order?.specialtyId]
+  const serviceRanges = savedRanges.length ? savedRanges : (rule ? [{ id: 'rule-' + order?.specialtyId, label: 'السعر الاسترشادي للخدمة', min: rule.min, max: rule.max }] : [])
   const [draft, setDraft] = useState([])
   const addCatalog = () => {
     const item = serviceItems.find((x) => String(x.id) === String(catalogId))
