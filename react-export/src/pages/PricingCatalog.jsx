@@ -17,11 +17,12 @@ export default function PricingCatalog() {
   const [item, setItem] = useState(blankItem)
   const [range, setRange] = useState(blankRange)
   const [notice, setNotice] = useState('')
+  const [editingItem, setEditingItem] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const allowed = isOwner || role === 'operations'
   const d = settings || display
-  const update = (setter, key) => (e) => setter((v) => ({ ...v, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
+  const update = (setter, key) => (e) => setter((v) => ({ ...(v || display), [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
 
   async function saveSettings() {
     setBusy(true); setError(''); setNotice('')
@@ -31,7 +32,7 @@ export default function PricingCatalog() {
   }
   async function addItem(e) {
     e.preventDefault(); setBusy(true); setError(''); setNotice('')
-    try { await saveItem(item); setItem(blankItem); setNotice('تم حفظ القطعة في جدول الأسعار.') }
+    try { await saveItem(item); setItem(blankItem); setEditingItem(false); setNotice('تم حفظ القطعة في جدول الأسعار.') }
     catch (e) { setError(e.message || 'تعذر حفظ القطعة.') }
     finally { setBusy(false) }
   }
@@ -66,12 +67,12 @@ export default function PricingCatalog() {
           <label className="flex items-center justify-between gap-2 text-sm text-slate-700"><span>كتالوج القطع للعميل</span><input type="checkbox" checked={!!d.showPartsCatalogToCustomer} onChange={update(setSettings,'showPartsCatalogToCustomer')}/></label>
           <label className="flex items-center justify-between gap-2 text-sm text-slate-700"><span>كتالوج القطع للفني</span><input type="checkbox" checked={!!d.showPartsCatalogToTechnician} onChange={update(setSettings,'showPartsCatalogToTechnician')}/></label>
         </div>
-        <p className="text-[11px] text-slate-500 mt-3">مثال: سعر القطعة قبل الضريبة 100 ريال، الضريبة {vat}%، الإجمالي {d.pricesIncludeVat ? '100' : (100 + 100*vat/100).toFixed(2)} ريال.</p>
+        <p className="text-[11px] text-slate-500 mt-3">مثال: سعر القطعة قبل الضريبة 100 ريال، الضريبة {vat}%، الإجمالي {(100 + 100*vat/100).toFixed(2)} ريال.</p>
         <button onClick={saveSettings} disabled={busy} className="mt-4 w-full rounded-xl bg-primary py-3 font-black text-white disabled:opacity-50">{busy?'جارِ الحفظ…':'حفظ إعدادات التسعير'}</button>
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-4">
-        <h2 className="font-black text-slate-900 flex items-center gap-2"><Package size={17}/> إضافة قطعة أو بند جديد</h2>
+        <h2 className="font-black text-slate-900 flex items-center gap-2"><Package size={17}/> {editingItem ? 'تعديل قطعة أو بند' : 'إضافة قطعة أو بند جديد'}</h2>
         <form onSubmit={addItem} className="grid sm:grid-cols-2 gap-3 mt-4">
           <Field label="كود القطعة"><input required className={input} value={item.code} onChange={update(setItem,'code')} placeholder="AC-CAP-001" dir="ltr"/></Field>
           <Field label="اسم القطعة / البند"><input required className={input} value={item.name} onChange={update(setItem,'name')}/></Field>
@@ -80,11 +81,11 @@ export default function PricingCatalog() {
           <Field label="سعر القطعة قبل الضريبة (ر.س)"><input required type="number" min="0" step="0.01" className={input} value={item.basePrice} onChange={update(setItem,'basePrice')}/></Field>
           <Field label="الوحدة"><input className={input} value={item.unit} onChange={update(setItem,'unit')}/></Field>
           <label className="flex items-center gap-2 text-xs text-slate-600"><input type="checkbox" checked={!!item.vatExempt} onChange={update(setItem,'vatExempt')}/> معفى من الضريبة</label>
-          <button disabled={busy} className="rounded-xl bg-slate-900 text-white py-2.5 font-bold disabled:opacity-50"><Plus size={15} className="inline"/> إضافة إلى الجدول</button>
+          <button disabled={busy} className="rounded-xl bg-slate-900 text-white py-2.5 font-bold disabled:opacity-50">{editingItem ? 'حفظ التعديل' : <><Plus size={15} className="inline"/> إضافة إلى الجدول</>}</button>
         </form>
-        <div className="mt-4 overflow-x-auto"><table className="w-full text-right text-xs min-w-[520px]"><thead><tr className="border-b text-slate-500"><th className="p-2">الكود</th><th className="p-2">القطعة</th><th className="p-2">قبل الضريبة</th><th className="p-2">الضريبة</th><th className="p-2">الإجمالي</th></tr></thead><tbody>
-          {items.map(x=>{const tax=display.vatEnabled&&!x.vatExempt?Number(x.basePrice)*Number(x.vatRate??display.vatRate)/100:0;return <tr key={x.id} className="border-b border-slate-100"><td className="p-2 font-mono">{x.code}</td><td className="p-2 font-bold">{x.name}</td><td className="p-2">{Number(x.basePrice).toFixed(2)}</td><td className="p-2">{tax.toFixed(2)}</td><td className="p-2 font-black">{(Number(x.basePrice)+tax).toFixed(2)} ر.س</td></tr>})}
-          {!items.length&&<tr><td colSpan="5" className="p-4 text-center text-slate-400">لا توجد قطع مسجلة بعد.</td></tr>}
+        <div className="mt-4 overflow-x-auto"><table className="w-full text-right text-xs min-w-[520px]"><thead><tr className="border-b text-slate-500"><th className="p-2">الكود</th><th className="p-2">القطعة</th><th className="p-2">قبل الضريبة</th><th className="p-2">الضريبة</th><th className="p-2">الإجمالي</th><th className="p-2">إجراء</th></tr></thead><tbody>
+          {items.map(x=>{const tax=display.vatEnabled&&!x.vatExempt?Number(x.basePrice)*Number(x.vatRate??display.vatRate)/100:0;return <tr key={x.id} className="border-b border-slate-100"><td className="p-2 font-mono">{x.code}</td><td className="p-2 font-bold">{x.name}</td><td className="p-2">{Number(x.basePrice).toFixed(2)}</td><td className="p-2">{tax.toFixed(2)}</td><td className="p-2 font-black">{(Number(x.basePrice)+tax).toFixed(2)} ر.س</td><td className="p-2"><button type="button" onClick={()=>{setItem({...x,code:x.code||x.id,basePrice:String(x.basePrice)});setEditingItem(true)}} className="text-primary font-bold">تعديل</button></td></tr>})}
+          {!items.length&&<tr><td colSpan="6" className="p-4 text-center text-slate-400">لا توجد قطع مسجلة بعد.</td></tr>}
         </tbody></table></div>
       </section>
 
@@ -99,7 +100,7 @@ export default function PricingCatalog() {
           <Field label="الحد الأقصى (ر.س)"><input required type="number" min="0" step="0.01" className={input} value={range.max} onChange={update(setRange,'max')}/></Field>
           <button disabled={busy} className="rounded-xl bg-primary text-white py-2.5 font-bold disabled:opacity-50">حفظ النطاق التقريبي</button>
         </form>
-        <div className="mt-4 grid sm:grid-cols-2 gap-2">{ranges.map(r=><div key={r.id} className="rounded-xl bg-slate-50 border border-slate-100 p-3"><p className="text-xs font-bold text-slate-800">{r.label}</p><p className="text-[11px] text-slate-500">{SPECIALTIES.find(s=>s.id===r.serviceKey)?.label||r.serviceKey}</p><p className="font-black text-primary mt-1">{r.min} – {r.max} ر.س <span className="text-[10px] font-normal text-slate-400">تقريبي</span></p></div>)}</div>
+        <div className="mt-4 grid sm:grid-cols-2 gap-2">{ranges.map(r=><div key={r.id} className="rounded-xl bg-slate-50 border border-slate-100 p-3"><p className="text-xs font-bold text-slate-800">{r.label}</p><p className="text-[11px] text-slate-500">{SPECIALTIES.find(s=>s.id===r.serviceKey)?.label||r.serviceKey}</p><p className="font-black text-primary mt-1">{r.min} – {r.max} ر.س <span className="text-[10px] font-normal text-slate-400">تقريبي</span></p><button type="button" onClick={()=>setRange({...r,min:String(r.min),max:String(r.max)})} className="mt-2 text-xs font-bold text-primary">تعديل النطاق</button></div>)}</div>
       </section>
       {error&&<p className="text-sm font-bold text-rose-600">{error}</p>}{notice&&<p className="text-sm font-bold text-emerald-700">{notice}</p>}
     </main>
