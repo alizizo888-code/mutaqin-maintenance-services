@@ -49,7 +49,7 @@ try {
                 $item['base_price_ex_vat']=round((float)$item['base_price'],2);
             }
         }
-        mutqan_json(200,['status'=>'success','visible'=>true,'settings'=>['vat_enabled'=>(bool)$settings['vat_enabled'],'vat_rate'=>(float)$settings['vat_rate'],'prices_include_vat'=>(bool)$settings['prices_include_vat'],'show_customer_prices'=>(bool)$settings['show_customer_prices'],'show_technician_catalog'=>(bool)$settings['show_technician_catalog']],'items'=>$items]);
+        mutqan_json(200,['status'=>'success','visible'=>true,'settings'=>['vat_enabled'=>(bool)$settings['vat_enabled'],'vat_rate'=>(float)$settings['vat_rate'],'prices_include_vat'=>(bool)$settings['prices_include_vat'],'show_customer_prices'=>(bool)$settings['show_customer_prices'],'show_price_ranges'=>(bool)$settings['show_price_ranges'],'show_parts_catalog_to_customer'=>(bool)$settings['show_parts_catalog_to_customer'],'show_technician_prices'=>(bool)$settings['show_technician_prices'],'show_technician_catalog'=>(bool)$settings['show_technician_catalog']],'items'=>$items]);
     }
     if ($method==='GET' && $action==='ranges') {
         $user=mutqan_require_user($pdo,['owner','operations','technician','client']);
