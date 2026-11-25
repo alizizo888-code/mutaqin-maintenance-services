@@ -14,7 +14,7 @@ export default function RequestQuotePanel({ order, canEdit = false, customer = f
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const quote = order?.priceQuote
-  const serviceItems = useMemo(() => items.filter((x) => !x.serviceKey || x.serviceKey === order?.specialtyId), [items, order?.specialtyId])
+  const serviceItems = useMemo(() => display.showPartsCatalogToTechnician ? items.filter((x) => !x.serviceKey || x.serviceKey === order?.specialtyId) : [], [items, order?.specialtyId, display.showPartsCatalogToTechnician])
   const serviceRanges = ranges.filter((x) => x.serviceKey === order?.specialtyId)
   const [draft, setDraft] = useState([])
   const addCatalog = () => {
@@ -64,7 +64,7 @@ export default function RequestQuotePanel({ order, canEdit = false, customer = f
   const money = (v) => Number(v || 0).toFixed(2) + ' ر.س'
   return <section className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-white">
     <h2 className="font-black flex items-center gap-2"><Package size={17}/> التسعير وقطع الغيار</h2>
-    {display.showTechnicianPrices && serviceRanges.length > 0 && <div className="mt-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3">
+    {display.showTechnicianPrices && display.showPriceRanges && serviceRanges.length > 0 && <div className="mt-3 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3">
       <p className="text-xs font-bold text-amber-200">نطاقات استرشادية — ليست سعراً نهائياً</p>
       <p className="text-[10px] text-slate-400 mt-1">تتغير حسب نوع الجهاز وحجمه والحالة والسوق. المعاينة وتحديد السعر النهائي من الفني.</p>
       {serviceRanges.map(r=><p key={r.id} className="flex justify-between gap-2 text-xs mt-2"><span>{r.label}</span><b>{r.min}–{r.max} ر.س</b></p>)}
