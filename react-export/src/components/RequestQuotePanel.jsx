@@ -1,8 +1,23 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Plus, Send, CheckCircle2, XCircle, Package } from 'lucide-react'
-import { db } from '../lib/db'
+import { pricingApi } from '../lib/phpApi'
 import { usePricingCatalog } from '../hooks/usePricingCatalog'
 import { usePricing } from '../hooks/usePricing'
+
+const asQuote = (data) => {
+  const q = (data.quotes || [])[0]
+  if (!q) return null
+  const lines = (data.lines || []).filter((line) => Number(line.quote_id) === Number(q.id))
+  return {
+    id: Number(q.id), version: Number(q.version_no), status: q.status,
+    subtotal: Number(q.subtotal), vat: Number(q.vat_amount), total: Number(q.total_amount),
+    note: q.customer_note || '',
+    lines: lines.map((line) => ({
+      name: line.item_name, qty: Number(line.quantity), unitPrice: Number(line.unit_price),
+      subtotal: Number(line.line_subtotal), vat: Number(line.line_vat), total: Number(line.line_total),
+    })),
+  }
+}
 
 export default function RequestQuotePanel({ order, canEdit = false, customer = false }) {
   const { items, ranges, display } = usePricingCatalog()
@@ -14,8 +29,24 @@ export default function RequestQuotePanel({ order, canEdit = false, customer = f
   const [customPrice, setCustomPrice] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+  const [loadingQuote, setLoadingQuote] = useState(true)
   const [error, setError] = useState('')
-  const quote = order?.priceQuote
+  const [quote, setQuote] = useState(null)
+  const requestId = /^\d+$/.test(String(order?.id ?? '')) ? Number(order.id) : 0
+
+  async function refreshQuote() {
+    if (!requestId) { setQuote(null); setLoadingQuote(false); return }
+    setLoadingQuote(true)
+    try {
+      const data = await pricingApi('quote', { params: { request_id: requestId } })
+      setQuote(asQuote(data))
+      setError('')
+    } catch (e) {
+      setError(e.message || 'تعذر تحميل التسعيرة من الخادم.')
+    } finally { setLoadingQuote(false) }
+  }
+  useEffect(() => { refreshQuote() }, [requestId])
+
   const serviceItems = useMemo(() => display.showPartsCatalogToTechnician ? items.filter((x) => !x.serviceKey || x.serviceKey === order?.specialtyId) : [], [items, order?.specialtyId, display.showPartsCatalogToTechnician])
   const savedRanges = ranges.filter((x) => x.serviceKey === order?.specialtyId)
   const rule = rules[order?.specialtyId]
@@ -35,34 +66,28 @@ export default function RequestQuotePanel({ order, canEdit = false, customer = f
     setDraft((v) => [...v, { itemId: null, code: null, name: customName.trim(), qty: 1, unitPrice: price, custom: true }])
     setCustomName(''); setCustomPrice(''); setError('')
   }
-  const calc = (lines) => {
-    const subtotal = lines.reduce((s, x) => s + x.qty * x.unitPrice, 0)
-    const vat = display.vatEnabled ? lines.reduce((s, x) => s + x.qty * x.unitPrice * Number(x.vatRate ?? display.vatRate) / 100, 0) : 0
-    return { subtotal: Number(subtotal.toFixed(2)), vat: Number(vat.toFixed(2)), total: Number((subtotal + vat).toFixed(2)) }
-  }
   async function sendQuote() {
+    if (!requestId) return setError('رقم الطلب الحالي غير مرتبط بمعرّف طلب PHP؛ لن نحفظ تسعيرة محلية مضللة.')
     if (!draft.length) return setError('أضف بنداً واحداً على الأقل قبل إرسال التسعيرة.')
     setBusy(true); setError('')
     try {
-      const lines = draft.map((x) => {
-        const item = items.find((i) => String(i.id) === String(x.itemId))
-        const rate = display.vatEnabled && !item?.vatExempt ? Number(item?.vatRate ?? display.vatRate) : 0
-        const net = x.qty * x.unitPrice, tax = net * rate / 100
-        return { ...x, vatRate: rate, subtotal: Number(net.toFixed(2)), vat: Number(tax.toFixed(2)), total: Number((net + tax).toFixed(2)) }
-      })
-      const sums = calc(lines)
-      const next = { version: Number(quote?.version || 0) + 1, status: 'pending_customer', lines, ...sums, note: note.trim(), createdAt: new Date().toISOString(), createdBy: 'staff' }
-      await db.updateShared('orders', order.id, { priceQuote: next, priceQuoteStatus: 'pending_customer' })
+      const lines = draft.map((x) => ({
+        ...(x.itemId ? { catalog_item_id: Number(x.itemId) } : {}),
+        item_name: x.name, quantity: x.qty, unit_price: x.unitPrice,
+      }))
+      await pricingApi('create_quote', { method: 'POST', body: { request_id: requestId, lines, customer_note: note.trim() } })
       setDraft([]); setNote('')
-    } catch (e) { setError(e.message || 'تعذر إرسال التسعيرة.') }
+      await refreshQuote()
+    } catch (e) { setError(e.message || 'تعذر إرسال التسعيرة إلى قاعدة البيانات.') }
     finally { setBusy(false) }
   }
-  async function decide(status) {
+  async function decide(decision) {
+    if (!quote?.id) return
     setBusy(true); setError('')
     try {
-      const next = { ...quote, status, decidedAt: new Date().toISOString() }
-      await db.updateShared('orders', order.id, { priceQuote: next, priceQuoteStatus: status, ...(status === 'approved' ? { price: quote.total, approvedQuoteVersion: quote.version } : {}) })
-    } catch (e) { setError(e.message || 'تعذر تسجيل القرار.') }
+      await pricingApi('decide_quote', { method: 'POST', body: { quote_id: quote.id, decision } })
+      await refreshQuote()
+    } catch (e) { setError(e.message || 'تعذر تسجيل قرار العميل.') }
     finally { setBusy(false) }
   }
   const money = (v) => Number(v || 0).toFixed(2) + ' ر.س'
@@ -73,8 +98,9 @@ export default function RequestQuotePanel({ order, canEdit = false, customer = f
       <p className="text-[10px] text-slate-400 mt-1">تتغير حسب نوع الجهاز وحجمه والحالة والسوق. المعاينة وتحديد السعر النهائي من الفني.</p>
       {serviceRanges.map(r=><p key={r.id} className="flex justify-between gap-2 text-xs mt-2"><span>{r.label}</span><b>{r.min}–{r.max} ر.س</b></p>)}
     </div>}
+    {loadingQuote && <p className="mt-3 text-xs text-slate-400">جارٍ تحميل آخر تسعيرة…</p>}
     {quote && <div className="mt-3 rounded-xl border border-white/10 bg-black/10 p-3">
-      <div className="flex justify-between items-center gap-2"><b className="text-sm">التسعيرة رقم {quote.version}</b><span className="text-[10px] rounded-full bg-amber-500/15 text-amber-200 px-2 py-1">{quote.status==='pending_customer'?'بانتظار موافقة العميل':quote.status==='approved'?'معتمدة':'مرفوضة'}</span></div>
+      <div className="flex justify-between items-center gap-2"><b className="text-sm">التسعيرة رقم {quote.version}</b><span className="text-[10px] rounded-full bg-amber-500/15 text-amber-200 px-2 py-1">{quote.status==='pending_customer'?'بانتظار موافقة العميل':quote.status==='approved'?'معتمدة':quote.status==='superseded'?'تم استبدالها':'مرفوضة'}</span></div>
       {(quote.lines||[]).map((line,i)=><div key={i} className="flex justify-between gap-2 text-xs border-b border-white/5 py-2"><span>{line.name} × {line.qty}</span><b>{money(line.total)}</b></div>)}
       <div className="text-xs text-slate-300 mt-2 space-y-1"><p className="flex justify-between"><span>قبل الضريبة</span><b>{money(quote.subtotal)}</b></p><p className="flex justify-between"><span>القيمة المضافة</span><b>{money(quote.vat)}</b></p><p className="flex justify-between text-sm text-white"><span>الإجمالي</span><b>{money(quote.total)}</b></p></div>
       {quote.note && <p className="text-xs text-slate-400 mt-2">{quote.note}</p>}
