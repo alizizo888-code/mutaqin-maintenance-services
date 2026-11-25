@@ -249,6 +249,7 @@ export default function OrderDetailStaff() {
           <p className="text-xs font-bold text-slate-500 mb-1">العميل</p>
           <p className="text-white font-bold">{order.clientName}</p>
           <p className="text-slate-400 text-sm" dir="ltr">{order.clientPhone}</p>
+          {order.deviceType && <p className="text-slate-300 text-xs mt-2">نوع الجهاز: {order.deviceType}</p>}
           {order.priority === 'urgent' && <p className="text-rose-400 text-xs font-bold mt-1">أولوية عاجلة</p>}
         </Card>
 
