@@ -1,35 +1,23 @@
 import { useEffect, useState, useCallback } from 'react'
-import { auth } from '../lib/auth'
-import { social } from '../lib/social'
-import { team } from '../lib/team'
+import { bootstrap, phpAuth } from '../lib/phpApi'
 
-// Resolves: the fixed team group id, the current caller's role in it, and
-// whether they are the app owner. Used to gate every staff screen.
+// The PHP session is the single source of truth for staff identity and role.
 export function useTeamRole() {
-  const [state, setState] = useState({ loading: true, gid: null, role: null, isOwner: false, signedIn: false })
-
+  const [state, setState] = useState({ loading: true, gid: null, role: null, isOwner: false, signedIn: false, user: null })
   const load = useCallback(async () => {
     try {
-      const gid = await team.groupId()
-      const isOwner = auth.isAppOwner()
-      if (isOwner) {
-        try { await social.claimGroupOwnership(gid) } catch {}
-        try { await social.setAdminRoles(gid, ['operations', 'supervisor', 'technician']) } catch {}
-        setState({ loading: false, gid, role: 'owner', isOwner: true, signedIn: true })
-        return
-      }
-      const role = await social.getMyRole(gid)
-      setState({ loading: false, gid, role, isOwner: false, signedIn: !!role })
-    } catch (e) {
-      setState({ loading: false, gid: null, role: null, isOwner: false, signedIn: false })
+      const user = await bootstrap(true)
+      const role = user?.role || null
+      const staff = ['owner', 'operations', 'technician'].includes(role)
+      setState({ loading: false, gid: null, role: staff ? role : null, isOwner: role === 'owner', signedIn: staff, user: staff ? user : null })
+    } catch {
+      setState({ loading: false, gid: null, role: null, isOwner: false, signedIn: false, user: null })
     }
   }, [])
-
   useEffect(() => {
     load()
-    const unsub = auth.onAuthChange(() => load())
-    return () => unsub && unsub()
+    const unsubscribe = phpAuth.subscribe(() => load())
+    return unsubscribe
   }, [load])
-
   return { ...state, refresh: load }
 }
