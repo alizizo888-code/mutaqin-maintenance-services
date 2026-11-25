@@ -118,6 +118,8 @@ try {
         $catalog = mutqan_catalog();
         if (!isset($catalog[$category]) || !in_array($service, $catalog[$category], true)) mutqan_json(422, ['status' => 'error', 'message' => 'اختر الخدمة من القائمة المعتمدة.']);
         $issue = trim((string)($input['issue'] ?? ''));
+        $deviceType = trim((string)($input['device_type'] ?? ''));
+        if ($deviceType !== '' && mb_strlen($deviceType) > 120) mutqan_json(422, ['status' => 'error', 'message' => 'نوع الجهاز طويل أكثر من اللازم.']);
         if ($issue === '' || mb_strlen($issue) > 5000) mutqan_json(422, ['status' => 'error', 'message' => 'اكتب وصف المشكلة في حدود 5000 حرف.']);
 
         $name = trim((string)($user['full_name'] ?? $input['full_name'] ?? ''));
@@ -146,9 +148,9 @@ try {
             $insertClient->execute([':name' => $name, ':phone' => $phone, ':address' => $address]);
             $clientId = (int)$pdo->lastInsertId();
         }
-        $stmt = $pdo->prepare("INSERT INTO system_3_requests (client_id, tech_id, issue, before_img, after_img, service_category, service_name, requester_name, requester_phone, service_address, latitude, longitude, maps_url, channel, status, priority, created_by_user_id, assigned_user_id, guest_token_hash, created_at, updated_at) VALUES (:client_id,NULL,:issue,'/uploads/requests/pending_before.jpg',NULL,:category,:service,:name,:phone,:address,:lat,:lng,:maps,:channel,'new',:priority,:user_id,NULL,:guest_token,NOW(),NOW())");
+        $stmt = $pdo->prepare("INSERT INTO system_3_requests (client_id, tech_id, issue, before_img, after_img, service_category, service_name, device_type, requester_name, requester_phone, service_address, latitude, longitude, maps_url, channel, status, priority, created_by_user_id, assigned_user_id, guest_token_hash, created_at, updated_at) VALUES (:client_id,NULL,:issue,'/uploads/requests/pending_before.jpg',NULL,:category,:service,:device_type,:name,:phone,:address,:lat,:lng,:maps,:channel,'new',:priority,:user_id,NULL,:guest_token,NOW(),NOW())");
         $stmt->execute([
-            ':client_id' => $clientId, ':issue' => $issue, ':category' => $category, ':service' => $service,
+            ':client_id' => $clientId, ':issue' => $issue, ':category' => $category, ':service' => $service, ':device_type' => $deviceType !== '' ? $deviceType : null,
             ':name' => $name, ':phone' => $phone, ':address' => $address, ':lat' => $lat, ':lng' => $lng,
             ':maps' => $mapsUrl, ':channel' => $user ? 'client' : 'guest', ':priority' => $priority,
             ':user_id' => $user ? $user['id'] : null, ':guest_token' => $guestToken ? hash('sha256', $guestToken) : null,
@@ -157,7 +159,7 @@ try {
         foreach ($pdo->query("SELECT id FROM app_users WHERE role IN ('owner','operations') AND status='active'")->fetchAll() as $manager) {
             mutqan_notify($pdo, (int)$manager['id'], 'طلب صيانة جديد #' . $requestId, $name . ' طلب خدمة ' . $service . '. يحتاج الطلب إلى مراجعة وإسناد يدوي.', 'request', $requestId);
         }
-        mutqan_audit($pdo, $user ? (int)$user['id'] : null, 'create_request', 'request', $requestId, ['service_category' => $category, 'service_name' => $service, 'channel' => $user ? 'client' : 'guest']);
+        mutqan_audit($pdo, $user ? (int)$user['id'] : null, 'create_request', 'request', $requestId, ['service_category' => $category, 'service_name' => $service, 'device_type' => $deviceType, 'channel' => $user ? 'client' : 'guest']);
         $pdo->commit();
 
         $waNumber = defined('WHATSAPP_BUSINESS_NUMBER') ? preg_replace('/\D/', '', (string)WHATSAPP_BUSINESS_NUMBER) : '';
