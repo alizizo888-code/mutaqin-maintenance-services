@@ -61,7 +61,7 @@ export default function ClientShell() {
 
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         <div role="status" className="shrink-0 px-3 py-2 bg-amber-50 border-b border-amber-200 text-amber-900 text-center text-[11px] font-bold" dir="rtl">
-          تنبيه: طلبات العملاء وبيانات المتابعة في واجهة العميل ما زالت في وضع المعاينة المحلية. دخول فريق العمل وكتالوج التسعير مرتبطان الآن بجلسات PHP وقاعدة البيانات، بينما ربط الطلبات والدفع والإشعارات جارٍ استكماله.
+          وضع معاينة محلي لطلبات العملاء وبيانات المتابعة في واجهة العميل: ما زالت تُحفظ محلياً. دخول فريق العمل وكتالوج التسعير مرتبطان الآن بجلسات PHP وقاعدة البيانات، بينما ربط الطلبات والدفع والإشعارات جارٍ استكماله.
         </div>
         <main className="flex-1 min-h-0 overflow-hidden">
           <Outlet />
