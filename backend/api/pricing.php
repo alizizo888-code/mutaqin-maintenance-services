@@ -29,7 +29,7 @@ try {
         if ($user['role']==='client' && empty($settings['show_parts_catalog_to_customer'])) mutqan_json(200,['status'=>'success','visible'=>false,'items'=>[]]);
         if ($user['role']==='technician' && empty($settings['show_technician_catalog'])) mutqan_json(200,['status'=>'success','visible'=>false,'items'=>[]]);
         $service=trim((string)($_GET['service_key']??''));
-        $sql="SELECT id,item_code,item_name,category,service_key,item_type,unit_name,base_price,vat_rate,vat_exempt,min_price,max_price FROM mutqan_price_catalog WHERE is_active=1";
+        $sql="SELECT id,item_code,item_name,category,service_key,item_type,unit_name,base_price,vat_rate,vat_exempt,min_price,max_price,visible_to_customer,visible_to_technician,is_active FROM mutqan_price_catalog WHERE is_active=1";
         $args=[];
         if ($user['role']==='technician') $sql.=" AND visible_to_technician=1";
         if ($user['role']==='client') $sql.=" AND visible_to_customer=1";
