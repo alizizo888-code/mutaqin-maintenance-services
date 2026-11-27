@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Zap, SlidersHorizontal, LocateFixed, Radio, RefreshCw, Users, Headset, Bot, Tag, Sparkles, AlertTriangle, Radar, Wallet, MessageCircle, ShieldCheck, HardHat } from 'lucide-react'
+import { ChevronRight, Zap, SlidersHorizontal, LocateFixed, Radio, RefreshCw, Users, Headset, Bot, Tag, Sparkles, AlertTriangle, Radar, Wallet, MessageCircle, ShieldCheck, HardHat, Package } from 'lucide-react'
 import { db } from '../lib/db'
 import { push } from '../lib/push'
 import { useAiSettings } from '../hooks/useAiSettings'
@@ -169,6 +169,7 @@ export default function OperationsRoom() {
           <button onClick={() => navigate('/staff/pricing')} className="shrink-0 flex items-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-200">
             <Tag size={14} className="text-primary" /> <span className="hidden sm:inline">التسعير</span>
           </button>
+          <button onClick={() => navigate('/staff/pricing-catalog')} className="shrink-0 flex items-center gap-1.5 bg-primary/15 hover:bg-primary/25 border border-primary/40 rounded-xl px-3 py-2 text-[11px] font-bold text-white"><Package size={14} className="text-primary"/> <span className="hidden sm:inline">جدول الأسعار</span></button>
           <button onClick={() => navigate('/staff/ai-command')} className="shrink-0 flex items-center gap-1.5 bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 rounded-xl px-3 py-2 text-[11px] font-bold text-white">
             <Radar size={14} className="text-sky-300" /> <span className="hidden sm:inline">مركز قيادة AI</span>
           </button>

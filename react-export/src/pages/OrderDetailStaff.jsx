@@ -19,6 +19,8 @@ import { maps } from '../lib/maps'
 import MapView from '../components/MapView'
 import StatusBadge from '../components/StatusBadge'
 import StatusTimeline from '../components/StatusTimeline'
+import RequestQuotePanel from '../components/RequestQuotePanel'
+import OrderCashPanel from '../components/OrderCashPanel'
 import { SPECIALTIES } from '../constants'
 
 export default function OrderDetailStaff() {
@@ -243,10 +245,13 @@ export default function OrderDetailStaff() {
       </header>
 
       <div className="max-w-2xl mx-auto w-full px-4 pt-5 flex flex-col gap-5">
+        {(canAssign || isMyTask) && <RequestQuotePanel order={order} canEdit={canAssign || isMyTask} />}
+        {(canAssign || isMyTask) && <OrderCashPanel order={order} />}
         <Card>
           <p className="text-xs font-bold text-slate-500 mb-1">العميل</p>
           <p className="text-white font-bold">{order.clientName}</p>
           <p className="text-slate-400 text-sm" dir="ltr">{order.clientPhone}</p>
+          {order.deviceType && <p className="text-slate-300 text-xs mt-2">نوع الجهاز: {order.deviceType}</p>}
           {order.priority === 'urgent' && <p className="text-rose-400 text-xs font-bold mt-1">أولوية عاجلة</p>}
         </Card>
 

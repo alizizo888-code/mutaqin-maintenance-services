@@ -3,7 +3,11 @@ name: Build React export
 on:
   push:
     branches:
-      - main
+      - "**"
+    paths:
+      - "react-export/**"
+      - ".github/workflows/build-react-export.yml"
+  pull_request:
     paths:
       - "react-export/**"
       - ".github/workflows/build-react-export.yml"

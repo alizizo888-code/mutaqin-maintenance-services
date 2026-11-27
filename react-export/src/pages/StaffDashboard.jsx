@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Radar, LayoutList, Wrench, TrendingUp, Star, DollarSign } from 'lucide-react'
+import { Users, Radar, LayoutList, Wrench, TrendingUp, Star, DollarSign, Wallet } from 'lucide-react'
 import { useLiveShared } from '../lib/useLive'
 import { db } from '../lib/db'
 import { auth } from '../lib/auth'
@@ -69,6 +69,16 @@ export default function StaffDashboard({ roles }) {
                 className="flex items-center gap-1.5 text-xs font-bold text-black bg-primary rounded-full px-3 py-2"
               >
                 <Radar size={14} /> غرفة العمليات
+              </button>
+            )}
+            {(isOwner || effectiveRole === 'operations') && (
+              <button onClick={() => navigate('/staff/tech-finance')} className="flex items-center gap-1.5 text-xs font-bold text-white bg-white/10 border border-white/15 rounded-full px-3 py-2">
+                <Wallet size={14} /> حسابات الفنيين
+              </button>
+            )}
+            {effectiveRole === 'technician' && (
+              <button onClick={() => navigate('/staff/my-wallet')} className="flex items-center gap-1.5 text-xs font-bold text-black bg-primary rounded-full px-3 py-2">
+                <Wallet size={14} /> حسابي ومصروفاتي
               </button>
             )}
             {isOwner && (

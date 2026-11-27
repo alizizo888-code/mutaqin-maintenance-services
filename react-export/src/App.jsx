@@ -20,6 +20,7 @@ import TechRadar from './pages/TechRadar'
 import HandoffDetail from './pages/HandoffDetail'
 import AiSettings from './pages/AiSettings'
 import PricingRules from './pages/PricingRules'
+import PricingCatalog from './pages/PricingCatalog'
 import AiCommandCenter from './pages/AiCommandCenter'
 import PaymentMethods from './pages/PaymentMethods'
 import AiOwnerControl from './pages/AiOwnerControl'
@@ -30,6 +31,8 @@ import WhatsappCenter from './pages/WhatsappCenter'
 import Warranties from './pages/Warranties'
 import TechJoin from './pages/TechJoin'
 import TechRequests from './pages/TechRequests'
+import TechWallet from './pages/TechWallet'
+import TechFinanceAdmin from './pages/TechFinanceAdmin'
 
 export default function App() {
   return (
@@ -66,12 +69,15 @@ export default function App() {
         <Route path="/staff/handoff/:id" element={<HandoffDetail />} />
         <Route path="/staff/ai-settings" element={<AiSettings />} />
         <Route path="/staff/pricing" element={<PricingRules />} />
+        <Route path="/staff/pricing-catalog" element={<PricingCatalog />} />
         <Route path="/staff/ai-command" element={<AiCommandCenter />} />
         <Route path="/staff/payment-methods" element={<PaymentMethods />} />
         <Route path="/staff/ai-owner" element={<AiOwnerControl />} />
         <Route path="/staff/whatsapp" element={<WhatsappCenter />} />
         <Route path="/staff/warranties" element={<Warranties />} />
         <Route path="/staff/tech-requests" element={<TechRequests />} />
+        <Route path="/staff/my-wallet" element={<TechWallet />} />
+        <Route path="/staff/tech-finance" element={<TechFinanceAdmin />} />
       </Routes>
     </HashRouter>
   )

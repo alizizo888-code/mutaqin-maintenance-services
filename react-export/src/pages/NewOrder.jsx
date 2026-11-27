@@ -19,6 +19,8 @@ import ServiceTreePicker from '../components/ServiceTreePicker'
 import PermissionHelp from '../components/PermissionHelp'
 import { permissionState } from '../hooks/useLocator'
 import { branchesFor, selectionSummary } from '../serviceTree'
+import { usePricingCatalog } from '../hooks/usePricingCatalog'
+import { usePricing } from '../hooks/usePricing'
 
 const inputCls = 'w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 shadow-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15'
 
@@ -47,6 +49,13 @@ export default function NewOrder() {
   const [error, setError] = useState('')
   const [showRegister, setShowRegister] = useState(false)
   const [serviceSel, setServiceSel] = useState(null)
+  const [deviceType, setDeviceType] = useState('')
+  const { ranges: priceRanges, display: priceDisplay } = usePricingCatalog()
+  const priceDisclaimerOn = priceDisplay.showPriceDisclaimer !== false
+  const { rules: servicePricingRules } = usePricing()
+  const catalogRanges = priceRanges.filter((r) => r.serviceKey === specialtyId && (!serviceSel?.branchId || !r.branchId || r.branchId === serviceSel.branchId))
+  const rule = servicePricingRules[specialtyId]
+  const visibleRanges = catalogRanges.length ? catalogRanges : (rule && rule.min > 0 ? [{ id: 'rule-' + specialtyId, label: serviceSel?.branchLabel || 'الخدمة المختارة', min: rule.min, max: rule.max }] : [])
   const [locDenied, setLocDenied] = useState(false)
   useEffect(() => { setServiceSel(null) }, [specialtyId])
 
@@ -141,6 +150,8 @@ export default function NewOrder() {
         serviceBranch: serviceSel?.branchId || null,
         serviceChoices: serviceSel?.choices || null,
         serviceDetails: selectionSummary(specialtyId, serviceSel) || null,
+        deviceType: deviceType || null,
+        priceDisclosure: 'indicative_after_inspection',
         description: description.trim(),
         priority,
         promoCode: promoCode.trim() || null,
@@ -209,6 +220,26 @@ export default function NewOrder() {
         </Field>
 
         {specialtyId && <ServiceTreePicker specialtyId={specialtyId} value={serviceSel} onChange={setServiceSel} />}
+        {specialtyId === 'ac' && (
+          <Field label="نوع وحجم جهاز التكييف (يساعد الفني في المعاينة)">
+            <select value={deviceType} onChange={(e) => setDeviceType(e.target.value)} className={inputCls}>
+              <option value="">اختر نوع الجهاز إن كنت تعرفه</option>
+              {['سبليت 18','سبليت 24','سبليت 30','سبليت 36','جهاز ضغط','كونسيلد','باكيج','مركزي','تشيلر','غير متأكد'].map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </Field>
+        )}
+        {priceDisplay.showCustomerPrices && priceDisplay.showPriceRanges && visibleRanges.length > 0 && (
+          <section className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+            <p className="text-xs font-black text-amber-900">أسعار استرشادية تقريبية</p>
+            {priceDisclaimerOn && <p className="text-[11px] text-amber-800 leading-relaxed mt-1">{priceDisplay.priceDisclaimer}</p>}
+            <div className="mt-2 flex flex-col gap-2">
+              {visibleRanges.map((r) => <div key={r.id} className="flex items-center justify-between gap-3 border-t border-amber-200/70 pt-2">
+                <span className="text-xs font-bold text-slate-700">{r.label}</span>
+                <span className="text-xs font-black text-amber-900 whitespace-nowrap">{r.min} – {r.max} ر.س</span>
+              </div>)}
+            </div>
+          </section>
+        )}
 
         <Field label={serviceSel?.branchId ? 'تفاصيل إضافية (اختياري)' : 'صف المشكلة'}>
           <textarea
