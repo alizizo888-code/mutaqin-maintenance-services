@@ -49,3 +49,20 @@ export async function pricingApi(action, { method = 'GET', params = {}, body } =
   const query = new URLSearchParams({ action, ...Object.fromEntries(Object.entries(params).filter(([,v]) => v !== undefined && v !== null && v !== '')) });
   return request(`pricing.php?${query.toString()}`, { method, ...(method === 'GET' ? {} : { body: JSON.stringify(body || {}) }) });
 }
+
+export async function financeApi(action, { method = 'GET', params = {}, body } = {}) {
+  const query = new URLSearchParams({ action, ...Object.fromEntries(Object.entries(params).filter(([,v]) => v !== undefined && v !== null && v !== '')) })
+  return request(`finance.php?${query.toString()}`, { method, ...(method === 'GET' ? {} : { body: JSON.stringify(body || {}) }) })
+}
+/** Multipart upload (invoice + part photos). Content-Type is left to the browser for the boundary. */
+export async function financeUpload(action, formData) {
+  if (!csrfToken) await bootstrap()
+  const response = await fetch(`${API_ROOT}/finance.php?action=${encodeURIComponent(action)}`, {
+    method: 'POST', body: formData, credentials: 'same-origin', cache: 'no-store',
+    headers: { Accept: 'application/json', 'X-CSRF-Token': csrfToken },
+  })
+  let payload
+  try { payload = await response.json() } catch { throw new Error('استجابة الخادم غير صالحة.') }
+  if (!response.ok || payload?.status === 'error') { const e = new Error(payload?.message || `HTTP ${response.status}`); e.status = response.status; e.payload = payload; throw e }
+  return payload
+}

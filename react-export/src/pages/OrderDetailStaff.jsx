@@ -20,6 +20,7 @@ import MapView from '../components/MapView'
 import StatusBadge from '../components/StatusBadge'
 import StatusTimeline from '../components/StatusTimeline'
 import RequestQuotePanel from '../components/RequestQuotePanel'
+import OrderCashPanel from '../components/OrderCashPanel'
 import { SPECIALTIES } from '../constants'
 
 export default function OrderDetailStaff() {
@@ -245,6 +246,7 @@ export default function OrderDetailStaff() {
 
       <div className="max-w-2xl mx-auto w-full px-4 pt-5 flex flex-col gap-5">
         {(canAssign || isMyTask) && <RequestQuotePanel order={order} canEdit={canAssign || isMyTask} />}
+        {(canAssign || isMyTask) && <OrderCashPanel order={order} />}
         <Card>
           <p className="text-xs font-bold text-slate-500 mb-1">العميل</p>
           <p className="text-white font-bold">{order.clientName}</p>

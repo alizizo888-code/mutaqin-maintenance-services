@@ -5,6 +5,7 @@ export const DEFAULT_PRICING_DISPLAY = {
   id: 'global', vatEnabled: true, vatRate: 15, pricesIncludeVat: false,
   showCustomerPrices: true, showTechnicianPrices: true, showPriceRanges: true,
   showPartsCatalogToCustomer: false, showPartsCatalogToTechnician: true,
+  showPriceDisclaimer: true, priceDisclaimer: 'الأسعار المعروضة تقريبية واسترشادية وليست ملزمة؛ تختلف حسب نوع الجهاز وحجمه وحالته وقطع الغيار وأسعار السوق. يحدد الفني السعر النهائي بعد المعاينة ولا تعتمد أي زيادة إلا بموافقتك.',
 }
 const fromSettings = (s = {}) => ({
   ...DEFAULT_PRICING_DISPLAY,
@@ -16,6 +17,8 @@ const fromSettings = (s = {}) => ({
   showPriceRanges: !!s.show_price_ranges,
   showPartsCatalogToCustomer: !!s.show_parts_catalog_to_customer,
   showPartsCatalogToTechnician: !!s.show_technician_catalog,
+  showPriceDisclaimer: s.show_price_disclaimer !== false,
+  priceDisclaimer: s.price_disclaimer || DEFAULT_PRICING_DISPLAY.priceDisclaimer,
 })
 const fromItem = (x) => ({
   id: Number(x.id), code: x.item_code, name: x.item_name, category: x.category,
@@ -61,6 +64,7 @@ export function usePricingCatalog() {
       show_parts_catalog_to_customer: next.showPartsCatalogToCustomer,
       show_technician_prices: next.showTechnicianPrices,
       show_technician_catalog: next.showPartsCatalogToTechnician,
+      show_price_disclaimer: next.showPriceDisclaimer, price_disclaimer: next.priceDisclaimer,
     } })
     setDisplay(next)
     await refresh()

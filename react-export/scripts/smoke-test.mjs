@@ -50,7 +50,7 @@ try {
     '/', '/services', '/offers', '/store', '/orders', '/account', '/calculator', '/more',
     '/ai', '/new', '/privacy', '/notifications', '/contact', '/warranty', '/order/__smoke__',
     '/join-tech', '/staff', '/staff/order/__smoke__', '/staff/operations', '/staff/radar',
-    '/staff/handoff/__smoke__', '/staff/ai-settings', '/staff/pricing', '/staff/ai-command',
+    '/staff/handoff/__smoke__', '/staff/ai-settings', '/staff/pricing', '/staff/ai-command', '/staff/my-wallet', '/staff/tech-finance',
     '/staff/payment-methods', '/staff/ai-owner', '/staff/whatsapp', '/staff/warranties',
     '/staff/tech-requests', '/staff/notify-settings',
   ];

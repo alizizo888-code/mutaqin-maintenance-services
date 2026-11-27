@@ -66,7 +66,9 @@ export default function PricingCatalog() {
           <label className="flex items-center justify-between gap-2 text-sm text-slate-700"><span>إظهار نطاق من وإلى</span><input type="checkbox" checked={!!d.showPriceRanges} onChange={update(setSettings,'showPriceRanges')}/></label>
           <label className="flex items-center justify-between gap-2 text-sm text-slate-700"><span>كتالوج القطع للعميل</span><input type="checkbox" checked={!!d.showPartsCatalogToCustomer} onChange={update(setSettings,'showPartsCatalogToCustomer')}/></label>
           <label className="flex items-center justify-between gap-2 text-sm text-slate-700"><span>كتالوج القطع للفني</span><input type="checkbox" checked={!!d.showPartsCatalogToTechnician} onChange={update(setSettings,'showPartsCatalogToTechnician')}/></label>
+          <label className="flex items-center justify-between gap-2 text-sm text-slate-700"><span>إظهار ملاحظة «الأسعار تقريبية» للعميل</span><input type="checkbox" checked={d.showPriceDisclaimer !== false} onChange={update(setSettings,'showPriceDisclaimer')}/></label>
         </div>
+        <label className="block text-sm text-slate-700 mt-3">نص ملاحظة الأسعار التقريبية<textarea rows="3" className={input+' mt-1'} value={d.priceDisclaimer || ''} onChange={update(setSettings,'priceDisclaimer')}/></label>
         <p className="text-[11px] text-slate-500 mt-3">مثال: سعر القطعة قبل الضريبة 100 ريال، الضريبة {vat}%، الإجمالي {(100 + 100*vat/100).toFixed(2)} ريال.</p>
         <button onClick={saveSettings} disabled={busy} className="mt-4 w-full rounded-xl bg-primary py-3 font-black text-white disabled:opacity-50">{busy?'جارِ الحفظ…':'حفظ إعدادات التسعير'}</button>
       </section>

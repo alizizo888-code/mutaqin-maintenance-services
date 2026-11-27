@@ -51,6 +51,7 @@ export default function NewOrder() {
   const [serviceSel, setServiceSel] = useState(null)
   const [deviceType, setDeviceType] = useState('')
   const { ranges: priceRanges, display: priceDisplay } = usePricingCatalog()
+  const priceDisclaimerOn = priceDisplay.showPriceDisclaimer !== false
   const { rules: servicePricingRules } = usePricing()
   const catalogRanges = priceRanges.filter((r) => r.serviceKey === specialtyId && (!serviceSel?.branchId || !r.branchId || r.branchId === serviceSel.branchId))
   const rule = servicePricingRules[specialtyId]
@@ -230,7 +231,7 @@ export default function NewOrder() {
         {priceDisplay.showCustomerPrices && priceDisplay.showPriceRanges && visibleRanges.length > 0 && (
           <section className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
             <p className="text-xs font-black text-amber-900">أسعار استرشادية تقريبية</p>
-            <p className="text-[11px] text-amber-800 leading-relaxed mt-1">تختلف حسب نوع الجهاز وحجمه وحالته وقطع الغيار وأسعار السوق. يحدد الفني السعر النهائي بعد المعاينة، ولا يتم اعتماد أي زيادة إلا بعد موافقتك.</p>
+            {priceDisclaimerOn && <p className="text-[11px] text-amber-800 leading-relaxed mt-1">{priceDisplay.priceDisclaimer}</p>}
             <div className="mt-2 flex flex-col gap-2">
               {visibleRanges.map((r) => <div key={r.id} className="flex items-center justify-between gap-3 border-t border-amber-200/70 pt-2">
                 <span className="text-xs font-bold text-slate-700">{r.label}</span>

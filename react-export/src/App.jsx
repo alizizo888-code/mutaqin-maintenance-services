@@ -31,6 +31,8 @@ import WhatsappCenter from './pages/WhatsappCenter'
 import Warranties from './pages/Warranties'
 import TechJoin from './pages/TechJoin'
 import TechRequests from './pages/TechRequests'
+import TechWallet from './pages/TechWallet'
+import TechFinanceAdmin from './pages/TechFinanceAdmin'
 
 export default function App() {
   return (
@@ -74,6 +76,8 @@ export default function App() {
         <Route path="/staff/whatsapp" element={<WhatsappCenter />} />
         <Route path="/staff/warranties" element={<Warranties />} />
         <Route path="/staff/tech-requests" element={<TechRequests />} />
+        <Route path="/staff/my-wallet" element={<TechWallet />} />
+        <Route path="/staff/tech-finance" element={<TechFinanceAdmin />} />
       </Routes>
     </HashRouter>
   )
